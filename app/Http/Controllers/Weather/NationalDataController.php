@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class PeriodDataController extends Controller
+class NationalDataController extends Controller
 {
     
     public function __invoke(Request $req): JsonResponse

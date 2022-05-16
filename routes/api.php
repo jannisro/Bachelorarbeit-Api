@@ -1,32 +1,56 @@
 <?php
 
 use App\Http\Controllers\AvailableCountriesController;
-use App\Http\Controllers\Electricity\PeriodDataController as ElectricityPeriodDataController;
-use App\Http\Controllers\Weather\PeriodDataController as WeatherPeriodDataController;
-use App\Http\Controllers\Weather\StationController;
+use App\Http\Controllers\Electricity\InternationalDataController;
+use App\Http\Controllers\Electricity\NationalDataController as NationalElectricityDataController;
+use App\Http\Controllers\Weather\NationalDataController as NationalWeatherDataController;
+use App\Http\Controllers\Weather\LocationController;
 use Illuminate\Support\Facades\Route;
 
 
+
 // Retrieve all available countries
-Route::middleware('auth:sanctum')->get('/countries', AvailableCountriesController::class);
+Route::middleware('auth:sanctum')
+    ->get('/countries/{code?}', AvailableCountriesController::class)
+    ->where('code', '[A-Z][A-Z]');
 
 
-// Electricity routes
-Route::middleware('auth:sanctum')->prefix('electricity')->group(function () {
 
-    # Get all data of a time period
-    Route::get('/{country}/{timePeriod}/{date}', ElectricityPeriodDataController::class);
+// National Electricity Data
+Route::middleware('auth:sanctum')
+    ->get('/electricity/national/{country}/{timePeriod}/{date}', NationalElectricityDataController::class)
+    ->where([
+        'country' => '[A-Z][A-Z]',
+        'date' => '\d\d\d\d-\d\d-\d\d'
+    ])
+    ->whereAlpha('timePeriod');
 
-});
 
 
-// Weather routes
-Route::middleware('auth:sanctum')->prefix('weather')->group(function () {
+// International Electricity Data
+Route::middleware('auth:sanctum')
+    ->get('/electricity/international/{country1}/{country2}/{timePeriod}/{date}', InternationalDataController::class)
+    ->where([
+        'country1' => '[A-Z][A-Z]',
+        'country2' => '[A-Z][A-Z]',
+        'date' => '\d\d\d\d-\d\d-\d\d'
+    ])
+    ->whereAlpha('timePeriod');
 
-    # Get all data of a time period
-    Route::get('/{country}/{timePeriod}/{date}', WeatherPeriodDataController::class);
 
-    # Get all weather stations
-    Route::get('/{country?}', StationController::class);
 
-});
+// National Weather Data
+Route::middleware('auth:sanctum')
+    ->get('/weather/national/{country}/{timePeriod}/{date}', NationalWeatherDataController::class)
+    ->where([
+        'country' => '[A-Z][A-Z]',
+        'date' => '\d\d\d\d-\d\d-\d\d'
+    ])
+    ->whereAlpha('timePeriod');
+
+
+
+// Weather Location Data
+Route::middleware('auth:sanctum')
+    ->get('/weather/locations/{country?}', LocationController::class)
+    ->where('country', '[A-Z][A-Z]');
