@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Electricity;
 use App\Http\Controllers\Controller;
 use App\Models\Electricity\Generation;
 use App\Models\Electricity\InstalledCapacity;
+use App\Services\DataSeriesService;
+use App\Services\TimePeriodService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -19,27 +21,25 @@ class NationalDataController extends Controller
         string $date
     ): JsonResponse
     {
-        if ($this->validateInput($country, $timePeriod, $date)) {
-            return response()->json([
-                'country' => $this->countryName,
-                'time_period' => $this->timePeriodName,
-                'data' => [
-                    'generation' => $this->timePeriodData(Generation::class),
-                    'installedCapacity' => InstalledCapacity::timePeriodData($this->getCountry(), $this->getTimePeriod())
-                ]
-            ]);
+        $countryObject = $this->validateCountry($country);
+        $period = $this->validateTimePeriod($timePeriod, $date);
+        if (!is_null($countryObject) && !is_null($period)) {
+            return $this->getResponse($countryObject, $period);
         }
         return $this->outputError(400, "Invalid parameters passed");
     }
 
 
-    private function timePeriodData(string $model): array
+    private function getResponse(/**/): JsonResponse
     {
-        return call_user_func(
-            [$model, 'timePeriodData'], 
-            $this->countryCode, 
-            $this->timePeriod
-        );
+        return response()->json([
+            'country' => '',
+            'time_period' => '',
+            'data' => [
+                'generation' => '',
+                'installedCapacity' => ''
+            ]
+        ]);
     }
 
 }

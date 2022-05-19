@@ -10,4 +10,9 @@ class InstalledCapacity extends Model
     use HasFactory;
 
     protected $table = "electricity_installed_capacity";
+
+    public function timeSeriesItem(array $params, array $timePeriod): array
+    {
+        return [];
+    }
 }

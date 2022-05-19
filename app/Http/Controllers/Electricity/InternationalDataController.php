@@ -7,5 +7,10 @@ use Illuminate\Http\Request;
 
 class InternationalDataController extends Controller
 {
-    //
+    
+    public function __invoke(Request $req)
+    {
+        
+    }
+
 }

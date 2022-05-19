@@ -10,4 +10,9 @@ class Generation extends Model
     use HasFactory;
 
     protected $table = "electricity_generation";
+
+    public function timeSeriesItem(array $params, array $timePeriod): array
+    {
+        return [];
+    }
 }

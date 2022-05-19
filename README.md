@@ -67,8 +67,13 @@ Sample Response:
         "load": [
             {
                 "dt": "2017-06-01 00:00",
-                "forecasted_value": 40241,
-                "actual_value": 47373
+                "value": 40241
+            }, ...
+        ],
+        "load_forecast": [
+            {
+                "dt": "2017-06-01 00:00",
+                "value": 40210
             }, ...
         ],
         "net_position": [
@@ -128,8 +133,13 @@ Sample Response:
         "net_transfer_capacity": [
             {
                 "dt": "2017-06-01 00:00",
-                "forecasted_value": 40241,
-                "actual_value": 400
+                "value": 405
+            }, ...
+        ],
+        "net_transfer_capacity_forecast": [
+            {
+                "dt": "2017-06-01 00:00",
+                "value": 387
             }, ...
         ]
     },
