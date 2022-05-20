@@ -7,6 +7,7 @@ abstract class Country
 
     private string $code;
     private string $displayName;
+    private int $id;
 
     public function getCode(): string
     {

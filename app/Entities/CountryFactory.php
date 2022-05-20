@@ -10,46 +10,23 @@ class CountryFactory extends Country
     private function __construct() {}
 
 
-    public static function generate(array $codes): ?array
+    public static function generate(string $code): ?Country
     {
-        if (count($codes) === 1 || count($codes) === 2) {
-            return self::validateCountries($codes);
-        }
-        return null;
-    }
-
-
-    private static function validateCountries($codes): ?array
-    {
-        $result = [];
-        foreach ($codes as $code) {
-            if (preg_match('/\b\D\D\b/i', $code) && $country = self::prepareCountry($code)) {
-                $result[] = $country;
-            }
-            else {
-                return null;
-            }
-        }
-        return $result;
-    }
-
-
-    private static function prepareCountry(string $code): ?Country
-    {
-        if ($name = self::getCountryName($code)) {
+        if (preg_match('/\b\D\D\b/i', $code) && $country = self::getCountry($code)) {
             return (new self)
-                ->setDisplayName($name)
-                ->setCode($code);
+                ->setDisplayName($country->official_name)
+                ->setCode($country->code);
         }
         return null;
     }
 
 
-    private static function getCountryName(string $code): ?string
+    private static function getCountry(string $code): ?AvailableCountry
     {
-        $country = AvailableCountry::select('official_name')->where('code', strtoupper($code));
+        $country = AvailableCountry::select(['official_name', 'code'])
+            ->where('code', strtoupper($code));
         if ($country && $country->count() === 1) {
-            return $country->first()->official_name;
+            return $country->first();
         }
         return null;
     }

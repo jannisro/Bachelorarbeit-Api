@@ -11,65 +11,45 @@ class CountryTest extends TestCase
 
     public function test_invalid_code_format()
     {
-        $this->assertNull(CountryFactory::generate(['xml', 'urt']));
-        $this->assertNull(CountryFactory::generate(['d', 'de1']));
-        $this->assertNull(CountryFactory::generate(['12', 'm']));
-        $this->assertNull(CountryFactory::generate(['2es']));
-        $this->assertNull(CountryFactory::generate(['fooo']));
-    }
-
-    public function test_invalid_param_length()
-    {
-        $this->assertNull(CountryFactory::generate([]));
-        $this->assertNull(CountryFactory::generate(['de', 'fr', 'es']));
+        $this->assertNull(CountryFactory::generate('xml'));
+        $this->assertNull(CountryFactory::generate('d'));
+        $this->assertNull(CountryFactory::generate('12'));
+        $this->assertNull(CountryFactory::generate('de1'));
+        $this->assertNull(CountryFactory::generate('fooo'));
     }
 
     public function test_invalid_codes() 
     {
-        $this->assertNull(CountryFactory::generate(['US']));
-        $this->assertNull(CountryFactory::generate(['BR', 'CH']));
-        $this->assertNull(CountryFactory::generate(['DE', 'GB']));
+        $this->assertNull(CountryFactory::generate('US'));
+        $this->assertNull(CountryFactory::generate('BR'));
+        $this->assertNull(CountryFactory::generate('GB'));
     }
 
     public function test_valid_single_country()
     {
-        $de = CountryFactory::generate(['DE']);
-        $this->assertCount(1, $de);
-        $this->testCountryProperties($de[0], 'Germany', 'DE');
+        $de = CountryFactory::generate('DE');
+        $this->testCountryProperties($de, 'Germany', 'DE');
 
-        $fr = CountryFactory::generate(['FR']);
-        $this->assertCount(1, $fr);
-        $this->testCountryProperties($fr[0], 'France', 'FR');
+        $fr = CountryFactory::generate('FR');
+        $this->testCountryProperties($fr, 'France', 'FR');
 
-        $se = CountryFactory::generate(['SE']);
-        $this->assertCount(1, $se);
-        $this->testCountryProperties($se[0], 'Sweden', 'SE');
+        $se = CountryFactory::generate('SE');
+        $this->testCountryProperties($se, 'Sweden', 'SE');
 
-        $ro = CountryFactory::generate(['RO']);
-        $this->assertCount(1, $ro);
-        $this->testCountryProperties($ro[0], 'Romania', 'RO');
+        $ro = CountryFactory::generate('RO');
+        $this->testCountryProperties($ro, 'Romania', 'RO');
 
-        $cz = CountryFactory::generate(['CZ']);
-        $this->assertCount(1, $cz);
-        $this->testCountryProperties($cz[0], 'Czech Republic', 'CZ');
+        $cz = CountryFactory::generate('CZ');
+        $this->testCountryProperties($cz, 'Czech Republic', 'CZ');
     }
 
-    public function test_valid_country_relation()
+    public function test_valid_single_countries_lowercase_code()
     {
-        $deAt = CountryFactory::generate(['DE', 'AT']);
-        $this->assertCount(2, $deAt);
-        $this->testCountryProperties($deAt[0], 'Germany', 'DE');
-        $this->testCountryProperties($deAt[1], 'Austria', 'AT');
+        $fi = CountryFactory::generate('fi');
+        $this->testCountryProperties($fi, 'Finland', 'FI');
 
-        $atDe = CountryFactory::generate(['AT', 'DE']);
-        $this->assertCount(2, $atDe);
-        $this->testCountryProperties($atDe[0], 'Austria', 'AT');
-        $this->testCountryProperties($atDe[1], 'Germany', 'DE');
-
-        $itCh = CountryFactory::generate(['IT', 'CH']);
-        $this->assertCount(2, $itCh);
-        $this->testCountryProperties($itCh[0], 'Italy', 'IT');
-        $this->testCountryProperties($itCh[1], 'Switzerland', 'CH');
+        $al = CountryFactory::generate('al');
+        $this->testCountryProperties($al, 'Albania', 'AL');
     }
 
     private function testCountryProperties(Country $country, string $expectedName, string $expectedCode): void
