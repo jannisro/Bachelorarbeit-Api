@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Entities;
 
-use App\Entities\Country;
-use App\Entities\CountryFactory;
+use App\Entities\Country\Country;
+use App\Entities\Country\CountryFactory;
 use Tests\TestCase;
 
 class CountryTest extends TestCase

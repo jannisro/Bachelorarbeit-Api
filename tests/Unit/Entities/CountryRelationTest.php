@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Entities;
 
-use App\Entities\CountryRelationFactory;
+use App\Entities\Country\CountryRelationFactory;
 use Tests\TestCase;
 
 class CountryRelationTest extends TestCase

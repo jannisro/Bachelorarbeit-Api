@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entities;
+namespace App\Entities\Country;
 
 abstract class CountryRelation
 {

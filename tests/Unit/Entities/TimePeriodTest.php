@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Entities;
 
-use App\Entities\TimePeriodFactory;
+use App\Entities\TimePeriod\TimePeriodFactory;
 use PHPUnit\Framework\TestCase;
 
 class TimePeriodTest extends TestCase
@@ -13,11 +13,11 @@ class TimePeriodTest extends TestCase
         $timePeriod = TimePeriodFactory::generate(date('Y-m-d'), 'day');
         $this->assertCount(23, $timePeriod->getSteps());
         $this->assertEquals(
-            [date('Y-m-d 00:00'), date('Y-m-d 01:00')], 
+            [new \DateTime('today 00:00'), new \DateTime('today 01:00')], 
             $timePeriod->getSteps()[0]
         );
         $this->assertEquals(
-            [date('Y-m-d 22:00'), date('Y-m-d 23:00')], 
+            [new \DateTime('today 22:00'), new \DateTime('today 23:00')], 
             $timePeriod->getSteps()[22]
         );
         $this->assertEquals(
@@ -50,10 +50,22 @@ class TimePeriodTest extends TestCase
     {
         $timePeriod = TimePeriodFactory::generate($startDate, 'week');
         $this->assertCount(7, $timePeriod->getSteps());
-        $this->assertEquals(['2022-05-16 00:00','2022-05-17 00:00'], $timePeriod->getSteps()[0]);
-        $this->assertEquals(['2022-05-17 00:00','2022-05-18 00:00'], $timePeriod->getSteps()[1]);
-        $this->assertEquals(['2022-05-18 00:00','2022-05-19 00:00'], $timePeriod->getSteps()[2]);
-        $this->assertEquals(['2022-05-22 00:00', '2022-05-23 00:00'], $timePeriod->getSteps()[6]);
+        $this->assertEquals(
+            [new \DateTimeImmutable('2022-05-16 00:00'), new \DateTimeImmutable('2022-05-17 00:00')], 
+            $timePeriod->getSteps()[0]
+        );
+        $this->assertEquals(
+            [new \DateTimeImmutable('2022-05-17 00:00'), new \DateTimeImmutable('2022-05-18 00:00')], 
+            $timePeriod->getSteps()[1]
+        );
+        $this->assertEquals(
+            [new \DateTimeImmutable('2022-05-18 00:00'), new \DateTimeImmutable('2022-05-19 00:00')], 
+            $timePeriod->getSteps()[2]
+        );
+        $this->assertEquals(
+            [new \DateTimeImmutable('2022-05-22 00:00'), new \DateTimeImmutable('2022-05-23 00:00')], 
+            $timePeriod->getSteps()[6]
+        );
         $this->assertEquals('2022-05-16 00:00', $timePeriod->getStart()->format('Y-m-d H:i'));
         $this->assertEquals('2022-05-22 23:00', $timePeriod->getEnd()->format('Y-m-d H:i'));
         $this->assertEquals('week', $timePeriod->getName());
@@ -64,11 +76,26 @@ class TimePeriodTest extends TestCase
     {
         $timePeriod = TimePeriodFactory::generate('2022-05-19', 'month');
         $this->assertCount(5, $timePeriod->getSteps());
-        $this->assertEquals(['2022-05-01 00:00', '2022-05-08 00:00'], $timePeriod->getSteps()[0]);
-        $this->assertEquals(['2022-05-08 00:00', '2022-05-15 00:00'], $timePeriod->getSteps()[1]);
-        $this->assertEquals(['2022-05-15 00:00', '2022-05-22 00:00'], $timePeriod->getSteps()[2]);
-        $this->assertEquals(['2022-05-22 00:00', '2022-05-29 00:00'], $timePeriod->getSteps()[3]);
-        $this->assertEquals(['2022-05-29 00:00', '2022-05-31 00:00'], $timePeriod->getSteps()[4]);
+        $this->assertEquals(
+            [new \DateTimeImmutable('2022-05-01 00:00'), new \DateTimeImmutable('2022-05-08 00:00')], 
+            $timePeriod->getSteps()[0]
+        );
+        $this->assertEquals(
+            [new \DateTimeImmutable('2022-05-08 00:00'), new \DateTimeImmutable('2022-05-15 00:00')], 
+            $timePeriod->getSteps()[1]
+        );
+        $this->assertEquals(
+            [new \DateTimeImmutable('2022-05-15 00:00'), new \DateTimeImmutable('2022-05-22 00:00')], 
+            $timePeriod->getSteps()[2]
+        );
+        $this->assertEquals(
+            [new \DateTimeImmutable('2022-05-22 00:00'), new \DateTimeImmutable( '2022-05-29 00:00')], 
+            $timePeriod->getSteps()[3]
+        );
+        $this->assertEquals(
+            [new \DateTimeImmutable('2022-05-29 00:00'), new \DateTimeImmutable('2022-05-31 00:00')], 
+            $timePeriod->getSteps()[4]
+        );
         $this->assertEquals('2022-05-01 00:00', $timePeriod->getStart()->format('Y-m-d H:i'));
         $this->assertEquals('2022-05-31 23:00', $timePeriod->getEnd()->format('Y-m-d H:i'));
         $this->assertEquals('month', $timePeriod->getName());
@@ -79,11 +106,26 @@ class TimePeriodTest extends TestCase
     {
         $timePeriod = TimePeriodFactory::generate('2022-05-19', 'year');
         $this->assertCount(12, $timePeriod->getSteps());
-        $this->assertEquals(['2022-01-01 00:00', '2022-02-01 00:00'], $timePeriod->getSteps()[0]);
-        $this->assertEquals(['2022-02-01 00:00', '2022-03-01 00:00'], $timePeriod->getSteps()[1]);
-        $this->assertEquals(['2022-03-01 00:00', '2022-04-01 00:00'], $timePeriod->getSteps()[2]);
-        $this->assertEquals(['2022-04-01 00:00', '2022-05-01 00:00'], $timePeriod->getSteps()[3]);
-        $this->assertEquals(['2022-05-01 00:00', '2022-06-01 00:00'], $timePeriod->getSteps()[4]);
+        $this->assertEquals(
+            [new \DateTimeImmutable('2022-01-01 00:00'), new \DateTimeImmutable('2022-02-01 00:00')], 
+            $timePeriod->getSteps()[0]
+        );
+        $this->assertEquals(
+            [new \DateTimeImmutable('2022-02-01 00:00'), new \DateTimeImmutable('2022-03-01 00:00')], 
+            $timePeriod->getSteps()[1]
+        );
+        $this->assertEquals(
+            [new \DateTimeImmutable('2022-03-01 00:00'), new \DateTimeImmutable('2022-04-01 00:00')], 
+            $timePeriod->getSteps()[2]
+        );
+        $this->assertEquals(
+            [new \DateTimeImmutable('2022-04-01 00:00'), new \DateTimeImmutable('2022-05-01 00:00')], 
+            $timePeriod->getSteps()[3]
+        );
+        $this->assertEquals(
+            [new \DateTimeImmutable('2022-05-01 00:00'), new \DateTimeImmutable('2022-06-01 00:00')], 
+            $timePeriod->getSteps()[4]
+        );
         $this->assertEquals('2022-01-01 00:00', $timePeriod->getStart()->format('Y-m-d H:i'));
         $this->assertEquals('2022-12-31 23:00', $timePeriod->getEnd()->format('Y-m-d H:i'));
         $this->assertEquals('year', $timePeriod->getName());

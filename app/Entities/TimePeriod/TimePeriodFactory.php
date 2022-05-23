@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entities;
+namespace App\Entities\TimePeriod;
 
 class TimePeriodFactory extends TimePeriod
 {
@@ -65,12 +65,12 @@ class TimePeriodFactory extends TimePeriod
         $currentDate = \DateTime::createFromImmutable($timePeriod->getStart());
         $periodStepModification = self::getPeriodStepModification($timePeriod->getName());
         while ($currentDate->getTimestamp() < $timePeriod->getEnd()->getTimestamp()) {
-            $stepStart = $currentDate->format('Y-m-d H:i');
+            $stepStart = \DateTimeImmutable::createFromMutable($currentDate);
             $currentDate->modify($periodStepModification);
-            $endDate = $currentDate->format('Y-m-d H:i');
+            $endDate = \DateTimeImmutable::createFromMutable($currentDate);
             // Step must not exceed the period by more than one day
             if ($currentDate->getTimestamp() > $timePeriod->getEnd()->getTimestamp()+24*60*60) {
-                $endDate = $timePeriod->getEnd()->format('Y-m-d 00:00');
+                $endDate = new \DateTimeImmutable($timePeriod->getEnd()->format('Y-m-d 00:00'));
             }
             $timePeriod->addStep([$stepStart, $endDate]);
         }
