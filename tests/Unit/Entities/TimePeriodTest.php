@@ -7,146 +7,90 @@ use PHPUnit\Framework\TestCase;
 
 class TimePeriodTest extends TestCase
 {
-    
-    public function test_day_period()
+
+    /**
+     * Test valid periods
+     * @dataProvider validPeriodProvider
+     */
+    public function test_valid_periods(
+        string $constructionDate, 
+        string $periodName, 
+        string $start, 
+        string $end, 
+        string $firstStepEnd, 
+        int $stepCount, 
+        string $displayName
+    )
     {
-        $timePeriod = TimePeriodFactory::generate(date('Y-m-d'), 'day');
-        $this->assertCount(23, $timePeriod->getSteps());
-        $this->assertEquals(
-            [new \DateTime('today 00:00'), new \DateTime('today 01:00')], 
-            $timePeriod->getSteps()[0]
-        );
-        $this->assertEquals(
-            [new \DateTime('today 22:00'), new \DateTime('today 23:00')], 
-            $timePeriod->getSteps()[22]
-        );
-        $this->assertEquals(
-            date('Y-m-d 00:00'), 
-            $timePeriod->getStart()->format('Y-m-d H:i')
-        );
-        $this->assertEquals(
-            date('Y-m-d 23:00'), 
-            $timePeriod->getEnd()->format('Y-m-d H:i')
-        );
-        $this->assertEquals('day', $timePeriod->getName());
-        $this->assertEquals(
-            date('Y-m-d'), 
-            $timePeriod->getDisplayName()
-        );
-    }
-    
-    public function test_week_period()
-    {
-        $this->runWeekPeriodAssertions('2022-05-16');
-        $this->runWeekPeriodAssertions('2022-05-17');
-        $this->runWeekPeriodAssertions('2022-05-18');
-        $this->runWeekPeriodAssertions('2022-05-19');
-        $this->runWeekPeriodAssertions('2022-05-20');
-        $this->runWeekPeriodAssertions('2022-05-21');
-        $this->runWeekPeriodAssertions('2022-05-22');
+        // Construction and test of item amount
+        $timePeriod = TimePeriodFactory::generate($constructionDate, $periodName);
+        $this->assertCount($stepCount, $timePeriod->getSteps());
+
+        // Test start and end
+        $this->assertEquals($start, $timePeriod->getStart()->format('Y-m-d H:i'));
+        $this->assertEquals($end, $timePeriod->getEnd()->format('Y-m-d H:i'));
+
+        // Test first step range
+        $this->assertEquals($start, $timePeriod->getSteps()[0][0]->format('Y-m-d H:i'));
+        $this->assertEquals($firstStepEnd, $timePeriod->getSteps()[0][1]->format('Y-m-d H:i'));
+        $this->assertEquals($end, $timePeriod->getSteps()[$stepCount-1][1]->format('Y-m-d H:i'));
+
+        // Test name and display name
+        $this->assertEquals($periodName, $timePeriod->getName());
+        $this->assertEquals($displayName, $timePeriod->getDisplayName());
     }
 
-    private function runWeekPeriodAssertions(string $startDate): void
+
+    public function validPeriodProvider(): array
     {
-        $timePeriod = TimePeriodFactory::generate($startDate, 'week');
-        $this->assertCount(7, $timePeriod->getSteps());
-        $this->assertEquals(
-            [new \DateTimeImmutable('2022-05-16 00:00'), new \DateTimeImmutable('2022-05-17 00:00')], 
-            $timePeriod->getSteps()[0]
-        );
-        $this->assertEquals(
-            [new \DateTimeImmutable('2022-05-17 00:00'), new \DateTimeImmutable('2022-05-18 00:00')], 
-            $timePeriod->getSteps()[1]
-        );
-        $this->assertEquals(
-            [new \DateTimeImmutable('2022-05-18 00:00'), new \DateTimeImmutable('2022-05-19 00:00')], 
-            $timePeriod->getSteps()[2]
-        );
-        $this->assertEquals(
-            [new \DateTimeImmutable('2022-05-22 00:00'), new \DateTimeImmutable('2022-05-23 00:00')], 
-            $timePeriod->getSteps()[6]
-        );
-        $this->assertEquals('2022-05-16 00:00', $timePeriod->getStart()->format('Y-m-d H:i'));
-        $this->assertEquals('2022-05-22 23:00', $timePeriod->getEnd()->format('Y-m-d H:i'));
-        $this->assertEquals('week', $timePeriod->getName());
-        $this->assertEquals('Week 20/2022', $timePeriod->getDisplayName());
-    }
-    
-    public function test_month_period()
-    {
-        $timePeriod = TimePeriodFactory::generate('2022-05-19', 'month');
-        $this->assertCount(5, $timePeriod->getSteps());
-        $this->assertEquals(
-            [new \DateTimeImmutable('2022-05-01 00:00'), new \DateTimeImmutable('2022-05-08 00:00')], 
-            $timePeriod->getSteps()[0]
-        );
-        $this->assertEquals(
-            [new \DateTimeImmutable('2022-05-08 00:00'), new \DateTimeImmutable('2022-05-15 00:00')], 
-            $timePeriod->getSteps()[1]
-        );
-        $this->assertEquals(
-            [new \DateTimeImmutable('2022-05-15 00:00'), new \DateTimeImmutable('2022-05-22 00:00')], 
-            $timePeriod->getSteps()[2]
-        );
-        $this->assertEquals(
-            [new \DateTimeImmutable('2022-05-22 00:00'), new \DateTimeImmutable( '2022-05-29 00:00')], 
-            $timePeriod->getSteps()[3]
-        );
-        $this->assertEquals(
-            [new \DateTimeImmutable('2022-05-29 00:00'), new \DateTimeImmutable('2022-05-31 00:00')], 
-            $timePeriod->getSteps()[4]
-        );
-        $this->assertEquals('2022-05-01 00:00', $timePeriod->getStart()->format('Y-m-d H:i'));
-        $this->assertEquals('2022-05-31 23:00', $timePeriod->getEnd()->format('Y-m-d H:i'));
-        $this->assertEquals('month', $timePeriod->getName());
-        $this->assertEquals('05/2022', $timePeriod->getDisplayName());
-    }
-    
-    public function test_year_period()
-    {
-        $timePeriod = TimePeriodFactory::generate('2022-05-19', 'year');
-        $this->assertCount(12, $timePeriod->getSteps());
-        $this->assertEquals(
-            [new \DateTimeImmutable('2022-01-01 00:00'), new \DateTimeImmutable('2022-02-01 00:00')], 
-            $timePeriod->getSteps()[0]
-        );
-        $this->assertEquals(
-            [new \DateTimeImmutable('2022-02-01 00:00'), new \DateTimeImmutable('2022-03-01 00:00')], 
-            $timePeriod->getSteps()[1]
-        );
-        $this->assertEquals(
-            [new \DateTimeImmutable('2022-03-01 00:00'), new \DateTimeImmutable('2022-04-01 00:00')], 
-            $timePeriod->getSteps()[2]
-        );
-        $this->assertEquals(
-            [new \DateTimeImmutable('2022-04-01 00:00'), new \DateTimeImmutable('2022-05-01 00:00')], 
-            $timePeriod->getSteps()[3]
-        );
-        $this->assertEquals(
-            [new \DateTimeImmutable('2022-05-01 00:00'), new \DateTimeImmutable('2022-06-01 00:00')], 
-            $timePeriod->getSteps()[4]
-        );
-        $this->assertEquals('2022-01-01 00:00', $timePeriod->getStart()->format('Y-m-d H:i'));
-        $this->assertEquals('2022-12-31 23:00', $timePeriod->getEnd()->format('Y-m-d H:i'));
-        $this->assertEquals('year', $timePeriod->getName());
-        $this->assertEquals('2022', $timePeriod->getDisplayName());
+        return [
+            // Day period
+            ['2022-05-24', 'day', '2022-05-24 00:00', '2022-05-25 00:00', '2022-05-24 01:00', 24, '2022-05-24'],
+            ['2021-12-31', 'day', '2021-12-31 00:00', '2022-01-01 00:00', '2021-12-31 01:00', 24, '2021-12-31'],
+            ['2022-04-30', 'day', '2022-04-30 00:00', '2022-05-01 00:00', '2022-04-30 01:00', 24, '2022-04-30'],
+            ['2022-06-15', 'day', '2022-06-15 00:00', '2022-06-16 00:00', '2022-06-15 01:00', 24, '2022-06-15'],
+            ['2022-04-01', 'day', '2022-04-01 00:00', '2022-04-02 00:00', '2022-04-01 01:00', 24, '2022-04-01'],
+            // Week period
+            ['2022-05-24', 'week', '2022-05-23 00:00', '2022-05-30 00:00', '2022-05-24 00:00', 7, 'Week 21/2022'],
+            ['2022-01-01', 'week', '2021-12-27 00:00', '2022-01-03 00:00', '2021-12-28 00:00', 7, 'Week 52/2021'],
+            ['2022-04-28', 'week', '2022-04-25 00:00', '2022-05-02 00:00', '2022-04-26 00:00', 7, 'Week 17/2022'],
+            ['2022-05-02', 'week', '2022-05-02 00:00', '2022-05-09 00:00', '2022-05-03 00:00', 7, 'Week 18/2022'],
+            // Month period
+            ['2022-05-24', 'month', '2022-04-25 00:00', '2022-06-06 00:00', '2022-05-02 00:00', 6, '05/2022'],
+            ['2022-02-01', 'month', '2022-01-31 00:00', '2022-03-07 00:00', '2022-02-07 00:00', 5, '02/2022'],
+            ['2022-01-23', 'month', '2021-12-27 00:00', '2022-02-07 00:00', '2022-01-03 00:00', 6, '01/2022'],
+            ['2022-06-04', 'month', '2022-05-30 00:00', '2022-07-04 00:00', '2022-06-06 00:00', 5, '06/2022'],
+            // Year period
+            ['2022-04-29', 'year', '2022-01-01 00:00', '2023-01-01 00:00', '2022-02-01 00:00', 12, '2022'],
+            ['2021-12-31', 'year', '2021-01-01 00:00', '2022-01-01 00:00', '2021-02-01 00:00', 12, '2021'],
+            ['2022-07-31', 'year', '2022-01-01 00:00', '2023-01-01 00:00', '2022-02-01 00:00', 12, '2022'],
+            ['2030-01-01', 'year', '2030-01-01 00:00', '2031-01-01 00:00', '2030-02-01 00:00', 12, '2030']
+        ];
     }
 
-    public function test_invalid_date_string()
+
+    /**
+     * Test invalid periods
+     * @dataProvider invalidPeriodProvider
+     */
+    public function test_invalid_time_period_name(string $constructionDate, string $periodName)
     {
-        $this->assertNull(TimePeriodFactory::generate('22.05.2019', 'day'));
-        $this->assertNull(TimePeriodFactory::generate('xxx', 'day'));
-        $this->assertNull(TimePeriodFactory::generate('22-05-01', 'day'));
-        $this->assertNull(TimePeriodFactory::generate('29812-01-01', 'day'));
-        $this->assertNull(TimePeriodFactory::generate('20220501', 'day'));
+        $this->assertNull(TimePeriodFactory::generate($constructionDate, $periodName));
     }
 
-    public function test_invalid_time_period_name()
+
+    public function invalidPeriodProvider(): array
     {
-        $this->assertNull(TimePeriodFactory::generate('2022-01-01', 'foo'));
-        $this->assertNull(TimePeriodFactory::generate('2022-01-01', 'yea'));
-        $this->assertNull(TimePeriodFactory::generate('2022-01-01', 'dy'));
-        $this->assertNull(TimePeriodFactory::generate('2022-01-01', 'weeek'));
+        return [
+            ['2022-01-01', 'foo'],
+            ['2022-01-01', 'yea'],
+            ['2022-01-01', 'dy'],
+            ['2022-01-01', 'weeek'],
+            ['20220999', 'day'],
+            ['2022-01-800', 'week'],
+            ['34894298493', 'month'],
+            ['2022-30-05', 'year']
+        ];
     }
 
 }

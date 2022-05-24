@@ -35,11 +35,14 @@ abstract class DataSeries
 
     protected function accumulateData(TimePeriod $timePeriod): void
     {
+        $result = [];
         foreach ($this->fields as $fieldName) {
+            $result[$fieldName] = [];
             foreach ($timePeriod->getSteps() as $periodStep) {
-                $this->values[$fieldName] = $this->calculateMeanValueOfPeriodStep($fieldName, $periodStep);
+                $result[$fieldName][] = $this->calculateMeanValueOfPeriodStep($fieldName, $periodStep);
             }
         }
+        $this->values = $result;
     }
 
 

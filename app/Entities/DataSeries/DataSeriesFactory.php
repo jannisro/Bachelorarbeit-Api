@@ -11,14 +11,14 @@ class DataSeriesFactory extends DataSeries
 
     public static function generate(Collection $periodData, array $fields, TimePeriod $timePeriod): DataSeries
     {
-        $hourlyDataSeries = new self($fields);
+        $dataSeries = new self($fields);
         foreach ($periodData as $dataPoint) {
-            $hourlyDataSeries->addDataPoint($dataPoint);
+            $dataSeries->addDataPoint($dataPoint);
         } 
         if ($timePeriod->getName() !== 'day') {
-            $hourlyDataSeries->accumulateData($timePeriod);
+            $dataSeries->accumulateData($timePeriod);
         }
-        return $hourlyDataSeries;
+        return $dataSeries;
     }
 
 }

@@ -10,7 +10,11 @@ class TimePeriodFactory extends TimePeriod
     public static function generate(string $dateString, string $timePeriodName): ?TimePeriod
     {
         if (self::validate($dateString, $timePeriodName)) {
-            return self::prepareTimePeriodEntity($dateString, $timePeriodName);
+            try {
+                return self::prepareTimePeriodEntity($dateString, $timePeriodName);
+            } catch (\Exception $e) {
+                return null;
+            }
         }
         return null;
     }
@@ -34,29 +38,61 @@ class TimePeriodFactory extends TimePeriod
     private static function prepareBoundariesAndSteps(TimePeriod $timePeriod, string $dateString): TimePeriod
     {
         $start = (new \DateTime($dateString))->setTime(0, 0);
-        $end = (new \DateTime($dateString))->setTime(23, 0);
-        switch ($timePeriod->getName()) {
-            case 'day':
-                $timePeriod->setDisplayName($start->format('Y-m-d')); 
-                break;
-            case 'week':
-                $timePeriod->setDisplayName("Week {$start->format('W')}/{$start->format('Y')}");
-                $start->modify('-' . intval($start->format('N')) - 1 . ' days');
-                $end->modify('+' . 7 - intval($end->format('N')) . ' days');
-                break;
-            case 'month':
-                $timePeriod->setDisplayName($start->format('m').'/'.$start->format('Y'));
-                $start->modify('-' . intval($start->format('j')) - 1 . ' days');
-                $end->modify('+' . intval($end->format('t')) - intval($end->format('j')) . ' days');
-                break;
-            case 'year':
-                $timePeriod->setDisplayName($start->format('Y'));
-                $start = new \DateTime($start->format('Y') . '-01-01 00:00');
-                $end = new \DateTime($end->format('Y') . '-12-31 23:00');
-        }
-        $timePeriod->setStart(\DateTimeImmutable::createFromMutable($start));
-        $timePeriod->setEnd(\DateTimeImmutable::createFromMutable($end));
+        $end = (clone $start)->modify('+1 day');
+        self::addDayProperties($timePeriod, $start, $end);
+        self::addWeekProperties($timePeriod, $start, $end);
+        self::addMonthProperties($timePeriod, $start, $end);
+        self::addYearProperties($timePeriod, $start, $end);
         return self::prepareSteps($timePeriod);
+    }
+
+
+    private static function addDayProperties(TimePeriod $timePeriod, \DateTime $start): void
+    {
+        if ($timePeriod->getName() === 'day') {
+            $timePeriod->setDisplayName($start->format('Y-m-d'));
+            $timePeriod->setStart(self::dt2dti($start));
+            $timePeriod->setEnd(self::dt2dti((clone $start)->modify('+1 day')));
+        }
+    }
+
+
+    private static function addWeekProperties(TimePeriod $timePeriod, \DateTime $start): void
+    {
+        if ($timePeriod->getName() === 'week') {
+            $end = (clone $start)->modify('+1 day');
+            $timePeriod->setStart(self::dt2dti($start->modify('-' . intval($start->format('N')) - 1 . ' days')));
+            $timePeriod->setEnd(self::dt2dti($end->modify('+' . 8 - intval($end->format('N')) . ' days')));
+            $timePeriod->setDisplayName("Week {$timePeriod->getStart()->format('W')}/{$timePeriod->getStart()->format('Y')}");
+        }
+    }
+
+
+    private static function addMonthProperties(TimePeriod $timePeriod, \DateTime $start): void
+    {
+        if ($timePeriod->getName() === 'month') {
+            $timePeriod->setDisplayName($start->format('m').'/'.$start->format('Y'));
+            $firstDayOfMonth = new \DateTime($start->format('Y-m-01'));
+            $lastDayOfMonth = new \DateTime($start->format('Y-m-' . $start->format('t')));
+            $timePeriod->setStart(self::dt2dti($firstDayOfMonth->modify('-' . intval($firstDayOfMonth->format('N')) - 1 . ' days')));
+            $timePeriod->setEnd(self::dt2dti($lastDayOfMonth->modify('+' . 8 - intval($lastDayOfMonth->format('N')) . ' days')));
+        }
+    }
+
+
+    private static function addYearProperties(TimePeriod $timePeriod, \DateTime $start): void
+    {
+        if ($timePeriod->getName() === 'year') {
+            $timePeriod->setDisplayName($start->format('Y'));
+            $timePeriod->setStart(new \DateTimeImmutable($start->format('Y') . '-01-01 00:00'));
+            $timePeriod->setEnd(new \DateTimeImmutable($start->modify('+1 year')->format('Y') . '-01-01 00:00'));
+        }
+    }
+
+
+    private static function dt2dti(\DateTime $dt): \DateTimeImmutable
+    {
+        return \DateTimeImmutable::createFromMutable($dt);
     }
 
 
@@ -69,9 +105,9 @@ class TimePeriodFactory extends TimePeriod
             $currentDate->modify($periodStepModification);
             $endDate = \DateTimeImmutable::createFromMutable($currentDate);
             // Step must not exceed the period by more than one day
-            if ($currentDate->getTimestamp() > $timePeriod->getEnd()->getTimestamp()+24*60*60) {
+            /*if ($currentDate->getTimestamp() > $timePeriod->getEnd()->getTimestamp()+24*60*60) {
                 $endDate = new \DateTimeImmutable($timePeriod->getEnd()->format('Y-m-d 00:00'));
-            }
+            }*/
             $timePeriod->addStep([$stepStart, $endDate]);
         }
         return $timePeriod;

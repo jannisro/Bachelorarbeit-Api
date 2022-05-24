@@ -4,6 +4,7 @@ namespace Tests\Unit\Entities;
 
 use App\Entities\DataSeries\DataSeries;
 use App\Entities\DataSeries\DataSeriesFactory;
+use App\Entities\TimePeriod\TimePeriod;
 use App\Entities\TimePeriod\TimePeriodFactory;
 use Illuminate\Support\Collection;
 use Tests\TestCase;
@@ -12,47 +13,81 @@ class DataSeriesTest extends TestCase
 {
 
     private Collection $periodWeatherData;
+    private Collection $nationalEnergyData;
 
-    public function test_daily_weather_data()
-    {
-        $dataSeries = DataSeriesFactory::generate(
-            $this->periodWeatherData, 
-            ['temperature', 'wind', 'clouds', 'rain', 'snow'], 
-            TimePeriodFactory::generate('2022-01-01', 'day')
-        )->getValues();
+    /**
+     * Test weather data
+     * @dataProvider weatherDataProvider
+     */
+    public function test_weather_data(
+        TimePeriod $period, 
+        int $itemCount, 
+        array $tempValue, 
+        array $cloudValue, 
+        array $windValue, 
+        array $rainValue, 
+        array $snowValue
+    ) {
+        $fields = ['temperature', 'wind', 'clouds', 'rain', 'snow'];
+        $dataSeries = DataSeriesFactory::generate($this->periodWeatherData, $fields, $period)->getValues();
 
-        $this->assertCount(24, $dataSeries['temperature']);
-        $this->assertCount(24, $dataSeries['wind']);
-        $this->assertCount(24, $dataSeries['clouds']);
-        $this->assertCount(24, $dataSeries['rain']);
-        $this->assertCount(24, $dataSeries['snow']);
+        foreach ($fields as $field) {
+            $this->assertCount($itemCount, $dataSeries[$field]);
+        }
 
-        $this->assertEquals('2022-01-01 00:00', $dataSeries['temperature'][0]['dt']);
-        $this->assertEquals(0.97, $dataSeries['rain'][4]['value']);
-        $this->assertEquals(2.17, $dataSeries['wind'][2]['value']);
-        //$this->assertEquals(0, $dataSeries['rain'][6]['value']);
+        $this->assertEquals($tempValue[1], $dataSeries['temperature'][$tempValue[0]]['value']);
+        $this->assertEquals($cloudValue[1], $dataSeries['clouds'][$cloudValue[0]]['value']);
+        $this->assertEquals($windValue[1], $dataSeries['wind'][$windValue[0]]['value']);
+        $this->assertEquals($rainValue[1], $dataSeries['rain'][$rainValue[0]]['value']);
+        $this->assertEquals($snowValue[1], $dataSeries['snow'][$snowValue[0]]['value']);
     }
 
 
-    public function test_weekly_weather_data()
+    public function weatherDataProvider(): array
     {
-        $dataSeries = DataSeriesFactory::generate(
-            $this->periodWeatherData, 
-            ['temperature', 'wind', 'clouds', 'rain', 'snow'], 
-            TimePeriodFactory::generate('2022-01-01', 'week')
-        )->getValues();
-
-        $this->assertCount(2, $dataSeries['temperature']);
-        $this->assertCount(2, $dataSeries['wind']);
-        $this->assertCount(2, $dataSeries['clouds']);
-        $this->assertCount(2, $dataSeries['rain']);
-        $this->assertCount(2, $dataSeries['snow']);
-
-        $this->assertEquals('2022-01-01 00:00', $dataSeries['temperature'][0]['dt']);
-        $this->assertEquals(0.93, $dataSeries['rain'][0]['value']);
-        /*$this->assertEquals(2.17, $dataSeries['wind'][2]['value']);
-        $this->assertEquals(0, $dataSeries['rain'][6]['value']);*/
+        return [
+            [TimePeriodFactory::generate('2022-01-01', 'day'), 24, [0, 2.74], [4, 64.03], [1, 0.93], [2, 1.24], [3, 1.28]],
+            [TimePeriodFactory::generate('2022-01-01', 'week'), 7, [6, 1.74], [5, 68.72], [6, 5.65], [5, 0.93], [6, 1.18]],
+            [TimePeriodFactory::generate('2022-01-01', 'month'), 6, [0, 3.69], [1, 64.75], [5, 5.05], [0, 0.91], [1, 0.67]],
+            [TimePeriodFactory::generate('2022-06-05', 'year'), 12, [0, 4.28], [0, 68.46], [1, 5.05], [2, 0.9], [3, 0.43]]
+        ];
     }
+
+    /**
+     * Test weather data
+     * @dataProvider weatherDataProvider
+     */
+    public function test_energy_data(
+        TimePeriod $period, 
+        int $itemCount, 
+        array $netPosValue, 
+        array $priceValue, 
+        array $generationValue, 
+        array $loadValue
+    ) {
+        $fields = ['net_position', 'price', 'total_generation', 'load'];
+        $dataSeries = DataSeriesFactory::generate($this->periodWeatherData, $fields, $period)->getValues();
+
+        foreach ($fields as $field) {
+            $this->assertCount($itemCount, $dataSeries[$field]);
+        }
+
+        $this->assertEquals($netPosValue[1], $dataSeries['net_position'][$netPosValue[0]]['value']);
+        $this->assertEquals($priceValue[1], $dataSeries['price'][$priceValue[0]]['value']);
+        $this->assertEquals($generationValue[1], $dataSeries['total_generation'][$generationValue[0]]['value']);
+        $this->assertEquals($loadValue[1], $dataSeries['load'][$loadValue[0]]['value']);
+    }
+
+
+    /*public function energyDataProvider(): array
+    {
+        return [
+            [TimePeriodFactory::generate('2022-06-01', 'day'), 24, [0, 2373], [1, 279], [2, 11574], [3, 7109]],
+            [TimePeriodFactory::generate('2022-05-09', 'week'), 7, [1, 3178], [1, 231.67], [6, 10541], [6, 9602.33]],
+            [TimePeriodFactory::generate('2022-01-01', 'month'), 6, [0, 3.69], [1, 64.75], [5, 5.05], [0, 0.91], [1, 0.67]],
+            [TimePeriodFactory::generate('2022-06-05', 'year'), 12, [0, 4.28], [0, 68.46], [1, 5.05], [2, 0.9], [3, 0.43]]
+        ];
+    }*/
 
 
     public function setUp(): void
@@ -93,6 +128,39 @@ class DataSeriesTest extends TestCase
             (object)['datetime' => '2022-04-01 00:00', 'temperature' => 3.1, 'wind' => 2.37, 'clouds' => 9.48, 'rain' => 0.27, 'snow' => 0.86],
             (object)['datetime' => '2022-04-01 01:00', 'temperature' => 7, 'wind' => 4, 'clouds' => 10, 'rain' => 0, 'snow' => 0]
         ]);
+
+
+        $this->nationalEnergyData = collect([
+            // 01.05.22
+            (object)['datetime' => '2022-05-01 00:00', 'net_position' => -4990, 'price' => 175, 'total_generation' => 6098, 'load' => 11088], 
+            (object)['datetime' => '2022-05-01 01:00', 'net_position' => -4749, 'price' => 289, 'total_generation' => 9680, 'load' => 14429], 
+            // 02.05.22
+            (object)['datetime' => '2022-05-02 00:00', 'net_position' => -1565, 'price' => 207, 'total_generation' => 7722, 'load' => 9287], 
+            (object)['datetime' => '2022-05-02 01:00', 'net_position' => -1440, 'price' => 296, 'total_generation' => 9295, 'load' => 10735], 
+            (object)['datetime' => '2022-05-02 02:00', 'net_position' => 3850, 'price' => 151, 'total_generation' => 10358, 'load' => 6508], 
+            // 10.05
+            (object)['datetime' => '2022-05-10 00:00', 'net_position' => 5334, 'price' => 190, 'total_generation' => 14570, 'load' => 9236], 
+            (object)['datetime' => '2022-05-10 01:00', 'net_position' => 1205, 'price' => 285, 'total_generation' => 8869, 'load' => 7664], 
+            (object)['datetime' => '2022-05-10 02:00', 'net_position' => 2995, 'price' => 220, 'total_generation' => 8256, 'load' => 5261], 
+            // 15.05.22
+            (object)['datetime' => '2022-05-15 00:00', 'net_position' => -2622, 'price' => 218, 'total_generation' => 10476, 'load' => 13098], 
+            (object)['datetime' => '2022-05-15 01:00', 'net_position' => 2315, 'price' => 211, 'total_generation' => 10353, 'load' => 8038], 
+            (object)['datetime' => '2022-05-15 02:00', 'net_position' => 3123, 'price' => 226, 'total_generation' => 10794, 'load' => 7671], 
+            // 01.06.22
+            (object)['datetime' => '2022-06-01 00:00', 'net_position' => 2373, 'price' => 269, 'total_generation' => 8528, 'load' => 6155], 
+            (object)['datetime' => '2022-06-01 01:00', 'net_position' => 3738, 'price' => 279, 'total_generation' => 9480, 'load' => 5742], 
+            (object)['datetime' => '2022-06-01 02:00', 'net_position' => 2436, 'price' => 253, 'total_generation' => 11574, 'load' => 9138], 
+            (object)['datetime' => '2022-06-01 03:00', 'net_position' => -1654, 'price' => 190, 'total_generation' => 5455, 'load' => 7109], 
+            // 15.08.22
+            (object)['datetime' => '2022-08-15 00:00', 'net_position' => 679, 'price' => 290, 'total_generation' => 9948, 'load' => 9269], 
+            (object)['datetime' => '2022-08-15 01:00', 'net_position' => 8432, 'price' => 256, 'total_generation' => 13707, 'load' => 5275], 
+            (object)['datetime' => '2022-08-15 02:00', 'net_position' => -6700, 'price' => 257, 'total_generation' => 6626, 'load' => 13326], 
+            // 30.09.22
+            (object)['datetime' => '2022-09-30 00:00', 'net_position' => 3531, 'price' => 211, 'total_generation' => 12108, 'load' => 8577], 
+            (object)['datetime' => '2022-09-30 01:00', 'net_position' => 1643, 'price' => 164, 'total_generation' => 11286, 'load' => 9643]
+        ]);
+
+
     }
 
 }
