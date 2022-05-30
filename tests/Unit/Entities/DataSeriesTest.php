@@ -14,6 +14,7 @@ class DataSeriesTest extends TestCase
 
     private Collection $periodWeatherData;
     private Collection $nationalEnergyData;
+    private Collection $internationalEnergyData;
 
     /**
      * Test weather data
@@ -55,18 +56,19 @@ class DataSeriesTest extends TestCase
 
     /**
      * Test weather data
-     * @dataProvider weatherDataProvider
+     * @dataProvider nationalEnergyDataProvider
      */
-    public function test_energy_data(
+    public function test_national_energy_data(
         TimePeriod $period, 
         int $itemCount, 
         array $netPosValue, 
         array $priceValue, 
         array $generationValue, 
-        array $loadValue
+        array $loadValue,
+        array $loadForecastValue
     ) {
-        $fields = ['net_position', 'price', 'total_generation', 'load'];
-        $dataSeries = DataSeriesFactory::generate($this->periodWeatherData, $fields, $period)->getValues();
+        $fields = ['net_position', 'price', 'total_generation', 'load', 'load_forecast'];
+        $dataSeries = DataSeriesFactory::generate($this->nationalEnergyData, $fields, $period)->getValues();
 
         foreach ($fields as $field) {
             $this->assertCount($itemCount, $dataSeries[$field]);
@@ -76,18 +78,54 @@ class DataSeriesTest extends TestCase
         $this->assertEquals($priceValue[1], $dataSeries['price'][$priceValue[0]]['value']);
         $this->assertEquals($generationValue[1], $dataSeries['total_generation'][$generationValue[0]]['value']);
         $this->assertEquals($loadValue[1], $dataSeries['load'][$loadValue[0]]['value']);
+        $this->assertEquals($loadForecastValue[1], $dataSeries['load_forecast'][$loadForecastValue[0]]['value']);
     }
 
 
-    /*public function energyDataProvider(): array
+    public function nationalEnergyDataProvider(): array
     {
         return [
-            [TimePeriodFactory::generate('2022-06-01', 'day'), 24, [0, 2373], [1, 279], [2, 11574], [3, 7109]],
-            [TimePeriodFactory::generate('2022-05-09', 'week'), 7, [1, 3178], [1, 231.67], [6, 10541], [6, 9602.33]],
-            [TimePeriodFactory::generate('2022-01-01', 'month'), 6, [0, 3.69], [1, 64.75], [5, 5.05], [0, 0.91], [1, 0.67]],
-            [TimePeriodFactory::generate('2022-06-05', 'year'), 12, [0, 4.28], [0, 68.46], [1, 5.05], [2, 0.9], [3, 0.43]]
+            [TimePeriodFactory::generate('2022-05-01', 'day'), 20, [0, -4990], [1, 289], [0, 6098], [1, 14429], [0, 12000]],
+            [TimePeriodFactory::generate('2022-05-12', 'week'), 7, [1, 3178], [1, 231.67], [1, 10565], [6, 9602.33], [6, 10600]],
+            [TimePeriodFactory::generate('2022-08-04', 'month'), 5, [2, 803.67], [2, 267.67], [2, 10093.67], [2, 9290], [2, 8900]],
+            [TimePeriodFactory::generate('2022-09-04', 'year'), 12, [7, 803.67], [7, 267.67], [7, 10093.67], [8, 9110], [8, 8915]],
         ];
-    }*/
+    }
+
+    /**
+     * Test weather data
+     * @dataProvider internationalEnergyDataProvider
+     */
+    public function test_international_energy_data(
+        TimePeriod $period, 
+        int $itemCount, 
+        array $comFlowValue, 
+        array $phyFlowValue, 
+        array $ntcValue
+    ) {
+        $fields = ['commercial_flow', 'physical_flow', 'net_transfer_capacity'];
+        $dataSeries = DataSeriesFactory::generate($this->internationalEnergyData, $fields, $period)->getValues();
+
+        foreach ($fields as $field) {
+            $this->assertCount($itemCount, $dataSeries[$field]);
+        }
+
+        $this->assertEquals($comFlowValue[1], $dataSeries['commercial_flow'][$comFlowValue[0]]['value']);
+        $this->assertEquals($phyFlowValue[1], $dataSeries['physical_flow'][$phyFlowValue[0]]['value']);
+        $this->assertEquals($ntcValue[1], $dataSeries['net_transfer_capacity'][$ntcValue[0]]['value']);
+    }
+
+
+    public function internationalEnergyDataProvider(): array
+    {
+        return [
+            [TimePeriodFactory::generate('2022-07-01', 'day'), 9, [6, 183], [7, -2870], [8, 5986]],
+            [TimePeriodFactory::generate('2022-06-27', 'week'), 7, [4, -112.56], [4, -84.78], [4, 5943.78]],
+            [TimePeriodFactory::generate('2022-07-03', 'month'), 5, [0, -112.56], [0, -84.78], [0, 5943.78]],
+            [TimePeriodFactory::generate('2022-06-27', 'year'), 12, [6, -112.56], [6, -84.78], [6, 5943.78]],
+        ];
+    }
+
 
 
     public function setUp(): void
@@ -132,32 +170,46 @@ class DataSeriesTest extends TestCase
 
         $this->nationalEnergyData = collect([
             // 01.05.22
-            (object)['datetime' => '2022-05-01 00:00', 'net_position' => -4990, 'price' => 175, 'total_generation' => 6098, 'load' => 11088], 
-            (object)['datetime' => '2022-05-01 01:00', 'net_position' => -4749, 'price' => 289, 'total_generation' => 9680, 'load' => 14429], 
+            (object)['datetime' => '2022-05-01 00:00', 'net_position' => -4990, 'price' => 175, 'total_generation' => 6098, 'load' => 11088, 'load_forecast' => 12000], 
+            (object)['datetime' => '2022-05-01 01:00', 'net_position' => -4749, 'price' => 289, 'total_generation' => 9680, 'load' => 14429, 'load_forecast' => 14300], 
             // 02.05.22
-            (object)['datetime' => '2022-05-02 00:00', 'net_position' => -1565, 'price' => 207, 'total_generation' => 7722, 'load' => 9287], 
-            (object)['datetime' => '2022-05-02 01:00', 'net_position' => -1440, 'price' => 296, 'total_generation' => 9295, 'load' => 10735], 
-            (object)['datetime' => '2022-05-02 02:00', 'net_position' => 3850, 'price' => 151, 'total_generation' => 10358, 'load' => 6508], 
+            (object)['datetime' => '2022-05-02 00:00', 'net_position' => -1565, 'price' => 207, 'total_generation' => 7722, 'load' => 9287, 'load_forecast' => 12000], 
+            (object)['datetime' => '2022-05-02 01:00', 'net_position' => -1440, 'price' => 296, 'total_generation' => 9295, 'load' => 10735, 'load_forecast' => 12000], 
+            (object)['datetime' => '2022-05-02 02:00', 'net_position' => 3850, 'price' => 151, 'total_generation' => 10358, 'load' => 6508, 'load_forecast' => 7000], 
             // 10.05
-            (object)['datetime' => '2022-05-10 00:00', 'net_position' => 5334, 'price' => 190, 'total_generation' => 14570, 'load' => 9236], 
-            (object)['datetime' => '2022-05-10 01:00', 'net_position' => 1205, 'price' => 285, 'total_generation' => 8869, 'load' => 7664], 
-            (object)['datetime' => '2022-05-10 02:00', 'net_position' => 2995, 'price' => 220, 'total_generation' => 8256, 'load' => 5261], 
+            (object)['datetime' => '2022-05-10 00:00', 'net_position' => 5334, 'price' => 190, 'total_generation' => 14570, 'load' => 9236, 'load_forecast' => 12000], 
+            (object)['datetime' => '2022-05-10 01:00', 'net_position' => 1205, 'price' => 285, 'total_generation' => 8869, 'load' => 7664, 'load_forecast' => 8500], 
+            (object)['datetime' => '2022-05-10 02:00', 'net_position' => 2995, 'price' => 220, 'total_generation' => 8256, 'load' => 5261, 'load_forecast' => 4300], 
             // 15.05.22
-            (object)['datetime' => '2022-05-15 00:00', 'net_position' => -2622, 'price' => 218, 'total_generation' => 10476, 'load' => 13098], 
-            (object)['datetime' => '2022-05-15 01:00', 'net_position' => 2315, 'price' => 211, 'total_generation' => 10353, 'load' => 8038], 
-            (object)['datetime' => '2022-05-15 02:00', 'net_position' => 3123, 'price' => 226, 'total_generation' => 10794, 'load' => 7671], 
+            (object)['datetime' => '2022-05-15 00:00', 'net_position' => -2622, 'price' => 218, 'total_generation' => 10476, 'load' => 13098, 'load_forecast' => 12000], 
+            (object)['datetime' => '2022-05-15 01:00', 'net_position' => 2315, 'price' => 211, 'total_generation' => 10353, 'load' => 8038, 'load_forecast' => 7800], 
+            (object)['datetime' => '2022-05-15 02:00', 'net_position' => 3123, 'price' => 226, 'total_generation' => 10794, 'load' => 7671, 'load_forecast' => 12000], 
             // 01.06.22
-            (object)['datetime' => '2022-06-01 00:00', 'net_position' => 2373, 'price' => 269, 'total_generation' => 8528, 'load' => 6155], 
-            (object)['datetime' => '2022-06-01 01:00', 'net_position' => 3738, 'price' => 279, 'total_generation' => 9480, 'load' => 5742], 
-            (object)['datetime' => '2022-06-01 02:00', 'net_position' => 2436, 'price' => 253, 'total_generation' => 11574, 'load' => 9138], 
-            (object)['datetime' => '2022-06-01 03:00', 'net_position' => -1654, 'price' => 190, 'total_generation' => 5455, 'load' => 7109], 
+            (object)['datetime' => '2022-06-01 00:00', 'net_position' => 2373, 'price' => 269, 'total_generation' => 8528, 'load' => 6155, 'load_forecast' => 7230], 
+            (object)['datetime' => '2022-06-01 01:00', 'net_position' => 3738, 'price' => 279, 'total_generation' => 9480, 'load' => 5742, 'load_forecast' => 4800], 
+            (object)['datetime' => '2022-06-01 02:00', 'net_position' => 2436, 'price' => 253, 'total_generation' => 11574, 'load' => 9138, 'load_forecast' => 8900], 
+            (object)['datetime' => '2022-06-01 03:00', 'net_position' => -1654, 'price' => 190, 'total_generation' => 5455, 'load' => 7109, 'load_forecast' => 6900], 
             // 15.08.22
-            (object)['datetime' => '2022-08-15 00:00', 'net_position' => 679, 'price' => 290, 'total_generation' => 9948, 'load' => 9269], 
-            (object)['datetime' => '2022-08-15 01:00', 'net_position' => 8432, 'price' => 256, 'total_generation' => 13707, 'load' => 5275], 
-            (object)['datetime' => '2022-08-15 02:00', 'net_position' => -6700, 'price' => 257, 'total_generation' => 6626, 'load' => 13326], 
+            (object)['datetime' => '2022-08-15 00:00', 'net_position' => 679, 'price' => 290, 'total_generation' => 9948, 'load' => 9269, 'load_forecast' => 9400], 
+            (object)['datetime' => '2022-08-15 01:00', 'net_position' => 8432, 'price' => 256, 'total_generation' => 13707, 'load' => 5275, 'load_forecast' => 5300], 
+            (object)['datetime' => '2022-08-15 02:00', 'net_position' => -6700, 'price' => 257, 'total_generation' => 6626, 'load' => 13326, 'load_forecast' => 12000], 
             // 30.09.22
-            (object)['datetime' => '2022-09-30 00:00', 'net_position' => 3531, 'price' => 211, 'total_generation' => 12108, 'load' => 8577], 
-            (object)['datetime' => '2022-09-30 01:00', 'net_position' => 1643, 'price' => 164, 'total_generation' => 11286, 'load' => 9643]
+            (object)['datetime' => '2022-09-30 00:00', 'net_position' => 3531, 'price' => 211, 'total_generation' => 12108, 'load' => 8577, 'load_forecast' => 8400], 
+            (object)['datetime' => '2022-09-30 01:00', 'net_position' => 1643, 'price' => 164, 'total_generation' => 11286, 'load' => 9643, 'load_forecast' => 9430]
+        ]);
+
+
+        $this->internationalEnergyData = collect([
+            // 01.07.22
+            (object)['datetime' => '2022-07-01 00:00', 'commercial_flow' => -302, 'physical_flow' => -280, 'net_transfer_capacity' => 5930], 
+            (object)['datetime' => '2022-07-01 01:00', 'commercial_flow' => 349, 'physical_flow' => 289, 'net_transfer_capacity' => 5921],
+            (object)['datetime' => '2022-07-01 02:00', 'commercial_flow' => -922, 'physical_flow' => -850, 'net_transfer_capacity' => 5928], 
+            (object)['datetime' => '2022-07-01 03:00', 'commercial_flow' => 2901, 'physical_flow' => 3020, 'net_transfer_capacity' => 5908],
+            (object)['datetime' => '2022-07-01 04:00', 'commercial_flow' => -381, 'physical_flow' => -340, 'net_transfer_capacity' => 5961], 
+            (object)['datetime' => '2022-07-01 05:00', 'commercial_flow' => 79, 'physical_flow' => 90, 'net_transfer_capacity' => 5987],
+            (object)['datetime' => '2022-07-01 06:00', 'commercial_flow' => 183, 'physical_flow' => 174, 'net_transfer_capacity' => 5901],
+            (object)['datetime' => '2022-07-01 07:00', 'commercial_flow' => -2913, 'physical_flow' => -2870, 'net_transfer_capacity' => 5972], 
+            (object)['datetime' => '2022-07-01 08:00', 'commercial_flow' => -7, 'physical_flow' => 4, 'net_transfer_capacity' => 5986]
         ]);
 
 

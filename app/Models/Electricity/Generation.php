@@ -15,13 +15,13 @@ class Generation extends Model
     protected $table = "electricity_generation";
 
 
-    public static function getPeriodData(TimePeriod $timePeriod, Country $country): Collection
+    public static function periodDataOfCountry(TimePeriod $timePeriod, Country $country): Collection
     {
-        $fields = ['datetime', 'value'];
-        return self::select($fields)
-            ->where('countr', $country->getCode())
+        return self::select(['datetime as dt', 'value', 'psr_types.name AS psr_type'])
+            ->join('psr_types', 'psr_type', '=', 'psr_types.code')
             ->where('datetime', '>=', $timePeriod->getStart()->format('Y-m-d H:i'))
             ->where('datetime', '<', $timePeriod->getEnd()->format('Y-m-d H:i'))
+            ->where('country', $country->getCode())
             ->get();
     }
 }

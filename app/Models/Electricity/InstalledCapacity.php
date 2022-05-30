@@ -12,16 +12,15 @@ class InstalledCapacity extends Model
 {
     use HasFactory;
 
-    protected $table = "electricity_installed_capacity";
+    protected $table = "electricity_installed_capacities";
 
 
-    public static function getPeriodData(TimePeriod $timePeriod, Country $country): Collection
+    public static function periodDataOfCountry(TimePeriod $timePeriod, Country $country): Collection
     {
-        $fields = ['datetime', 'value'];
-        return self::select($fields)
-            ->where('countr', $country->getCode())
-            ->where('datetime', '>=', $timePeriod->getStart()->format('Y-m-d H:i'))
-            ->where('datetime', '<', $timePeriod->getEnd()->format('Y-m-d H:i'))
+        return self::select(['value', 'psr_types.name as psr_type'])
+            ->join('psr_types', 'psr_type', '=', 'psr_types.code')
+            ->where('country', $country->getCode())
+            ->where('year', $timePeriod->getStart()->format('Y'))
             ->get();
     }
 }

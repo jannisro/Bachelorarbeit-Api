@@ -10,15 +10,15 @@ use Illuminate\Support\Facades\Route;
 
 
 // Retrieve all available countries
-Route::middleware('auth:sanctum')
-    ->get('/countries/{code?}', AvailableCountriesController::class)
+Route::/*middleware('auth:sanctum')
+    ->*/get('/country/{code?}', AvailableCountriesController::class)
     ->where('code', '[A-Z][A-Z]');
 
 
 
 // National Electricity Data
-Route::middleware('auth:sanctum')
-    ->get('/electricity/national/{country}/{timePeriod}/{date}', NationalElectricityDataController::class)
+Route::/*middleware('auth:sanctum')
+    ->*/get('/electricity/national/{country}/{timePeriodName}/{date}', NationalElectricityDataController::class)
     ->where([
         'country' => '[A-Z][A-Z]',
         'date' => '\d\d\d\d-\d\d-\d\d'
@@ -28,8 +28,8 @@ Route::middleware('auth:sanctum')
 
 
 // International Electricity Data
-Route::middleware('auth:sanctum')
-    ->get('/electricity/international/{country1}/{country2}/{timePeriod}/{date}', InternationalDataController::class)
+Route::/*middleware('auth:sanctum')
+    ->*/get('/electricity/international/{country1}/{country2}/{timePeriodName}/{date}', InternationalDataController::class)
     ->where([
         'country1' => '[A-Z][A-Z]',
         'country2' => '[A-Z][A-Z]',
@@ -40,8 +40,8 @@ Route::middleware('auth:sanctum')
 
 
 // National Weather Data
-Route::middleware('auth:sanctum')
-    ->get('/weather/national/{country}/{timePeriod}/{date}', NationalWeatherDataController::class)
+Route::/*middleware('auth:sanctum')
+    ->*/get('/weather/national/{country}/{timePeriodName}/{date}', NationalWeatherDataController::class)
     ->where([
         'country' => '[A-Z][A-Z]',
         'date' => '\d\d\d\d-\d\d-\d\d'
@@ -51,6 +51,6 @@ Route::middleware('auth:sanctum')
 
 
 // Weather Location Data
-Route::middleware('auth:sanctum')
-    ->get('/weather/locations/{country?}', LocationController::class)
+Route::/*middleware('auth:sanctum')
+    ->*/get('/weather/location/{country?}', LocationController::class)
     ->where('country', '[A-Z][A-Z]');

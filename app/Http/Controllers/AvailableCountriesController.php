@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\AvailableCountry;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class AvailableCountriesController extends Controller
 {
@@ -18,13 +18,13 @@ class AvailableCountriesController extends Controller
     }
 
 
-    private function fetchCountries(?string $code): array
+    private function fetchCountries(?string $code): Collection
     {
         $countries = AvailableCountry::select(['short_name', 'official_name', 'code']);
         if (!is_null($code)) {
             $countries->where('code', $code);
         }
-        return $countries->get()->asArray();
+        return $countries->get();
     }
 
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Weather\Station;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class LocationController extends Controller
 {
@@ -18,7 +19,7 @@ class LocationController extends Controller
     }
 
 
-    private function fetchLocations(?string $country): array
+    private function fetchLocations(?string $country): Collection
     {
         $stations = Station::select([
             'id', 'lat', 'lng', 'name', 'country'
@@ -26,7 +27,7 @@ class LocationController extends Controller
         if (!is_null($country)) {
             $stations->where('country', $country);
         }
-        return $stations->get()->asArray();
+        return $stations->get();
     }
 
 }
