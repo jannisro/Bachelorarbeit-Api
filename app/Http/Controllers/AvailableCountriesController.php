@@ -12,19 +12,21 @@ class AvailableCountriesController extends Controller
     
     public function __invoke(Request $req, ?string $code = null): JsonResponse
     {
-        return response()->json([
-            'countries' => $this->fetchCountries($code)
-        ]);
+        return response()->json($this->fetchResult($code));
     }
 
 
-    private function fetchCountries(?string $code): Collection
+    private function fetchResult(?string $code): array
     {
-        $countries = AvailableCountry::select(['short_name', 'official_name', 'code']);
-        if (!is_null($code)) {
-            $countries->where('code', $code);
+        if (is_null($code)) {
+            return [
+                'countries' => AvailableCountry::select(['short_name', 'official_name', 'code'])
+                    ->get()
+            ];
         }
-        return $countries->get();
+        return [
+            'valid_country' => AvailableCountry::where('code', $code)->count() === 1
+        ];
     }
 
 }
