@@ -13,6 +13,7 @@ use App\Models\Electricity\InstalledCapacity;
 use App\Models\Electricity\NationalHistory;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Collection;
 
 class NationalDataController extends Controller
 {
@@ -60,7 +61,43 @@ class NationalDataController extends Controller
             'installed_capacities' => InstalledCapacity::periodDataOfCountry($timePeriod, $country)
         ];
         if ($timePeriod->getName() === 'day') {
-            $result['generation'] = Generation::periodDataOfCountry($timePeriod, $country);
+            $result['generation'] = $this->groupGenerationByPsrType(
+                $this->getGenerationOfDay($timePeriod->getStart(), $country)
+            );
+        }
+        return $result;
+    }
+
+    private function getGenerationOfDay(\DateTimeImmutable $date, Country $country): Collection
+    {
+        return Generation::select(['datetime', 'psr_type', 'value', 'psr_types.name'])
+            ->join('psr_types', 'psr_type', '=', 'psr_types.code')
+            ->where('country', $country->getCode())
+            ->where('datetime', 'LIKE', "{$date->format('Y-m-d')} %")
+            ->orderBy('datetime', 'ASC')
+            ->get();
+    }
+
+
+    private function groupGenerationByPsrType(Collection $generationOfDay): array
+    {
+        $result = [];
+        foreach ($generationOfDay as $generationItem) {
+            if (isset($result[$generationItem->psr_type])) {
+                $result[$generationItem->psr_type]['hourly'][] = [
+                    'datetime' => $generationItem->datetime,
+                    'value' => $generationItem->value
+                ];
+            }
+            else {
+                $result[$generationItem->psr_type] = [
+                    'name' => $generationItem->name,
+                    'hourly' => [
+                        'datetime' => $generationItem->datetime,
+                        'value' => $generationItem->value
+                    ]
+                ];
+            }
         }
         return $result;
     }

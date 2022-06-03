@@ -95,7 +95,7 @@ class NationalDataController extends Controller
             return call_user_func_array([History::class, $modelMethodName], $modelMethodArgs);
         }
         // Period is entirely in the future
-        elseif ($timePeriod->getStart() > time()) {
+        elseif ($timePeriod->getStart()->getTimestamp() > time()) {
             return call_user_func_array([Forecast::class, $modelMethodName], $modelMethodArgs);
         }
         // Period intersects history and future

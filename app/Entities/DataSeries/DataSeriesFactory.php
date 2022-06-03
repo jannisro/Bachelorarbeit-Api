@@ -14,7 +14,7 @@ class DataSeriesFactory extends DataSeries
         $dataSeries = new self($fields);
         foreach ($periodData as $dataPoint) {
             $dataSeries->addDataPoint($dataPoint);
-        } 
+        }
         if ($timePeriod->getName() !== 'day') {
             $dataSeries->accumulateData($timePeriod);
         }

@@ -19,6 +19,11 @@ abstract class DataSeries
 
     public function getValues(): array
     {
+        if (count($this->values) === 0) {
+            foreach ($this->fields as $field) {
+                $this->values[$field] = [];
+            }
+        }
         return $this->values;
     }
 

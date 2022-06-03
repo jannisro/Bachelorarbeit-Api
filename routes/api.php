@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AvailableCountriesController;
 use App\Http\Controllers\BorderRelationsController;
-use App\Http\Controllers\Electricity\GenerationPerTypeController;
 use App\Http\Controllers\Electricity\InternationalDataController;
 use App\Http\Controllers\Electricity\NationalDataController as NationalElectricityDataController;
 use App\Http\Controllers\Weather\NationalDataController as NationalWeatherDataController;
@@ -33,16 +32,6 @@ Route::/*middleware('auth:sanctum')
         'date' => '\d\d\d\d-\d\d-\d\d'
     ])
     ->whereAlpha('timePeriod');
-
-
-
-// Electricity generation per type
-Route::/*middleware('auth:sanctum')
-    ->*/get('/electricity/generation/{country}/{date}', GenerationPerTypeController::class)
-    ->where([
-        'country' => '[A-Z][A-Z]',
-        'date' => '\d\d\d\d-\d\d-\d\d'
-    ]);
 
 
 
