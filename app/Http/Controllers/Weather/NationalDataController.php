@@ -40,6 +40,8 @@ class NationalDataController extends Controller
         return response()->json([
             'country' => $country->getDisplayName(),
             'time_period' => $timePeriod->getDisplayName(),
+            'previous_step' => $timePeriod->getPreviousStepDate()->format('Y-m-d'),
+            'next_step' =>  $timePeriod->getNextStepDate()->format('Y-m-d'),
             'data' => $this->getDataOutput($timePeriod, $country)
         ]);
     }

@@ -2,10 +2,11 @@
 
 namespace App\Models\Electricity;
 
+use App\Entities\Country\Country;
 use App\Entities\TimePeriod\TimePeriod;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class InternationalHistory extends Model
 {
@@ -14,7 +15,7 @@ class InternationalHistory extends Model
     protected $table = 'electricity_history_international';
 
 
-    public static function periodDataOfCountry(TimePeriod $timePeriod, array $countries): Collection
+    public static function periodDataOfCountryRelation(TimePeriod $timePeriod, array $countries): Collection
     {
         return self::select(['datetime', 'commercial_flow', 'physical_flow', 'net_transfer_capacity'])
             ->where('datetime', '>=', $timePeriod->getStart()->format('Y-m-d H:i'))
@@ -24,5 +25,35 @@ class InternationalHistory extends Model
             ->get();
     }
 
+
+    public static function summedPeriodDataOfCountry(TimePeriod $timePeriod, Country $country): Collection
+    {
+        $outgoing = self::select('datetime')
+            ->selectRaw('SUM(physical_flow) AS physical_flow')
+            ->selectRaw('SUM(commercial_flow) AS commercial_flow')
+            ->where('start_country', $country->getCode())
+            ->where('datetime', '>=', $timePeriod->getStart()->format('Y-m-d H:i'))
+            ->where('datetime', '<', $timePeriod->getEnd()->format('Y-m-d H:i'))
+            ->groupBy('datetime')
+            ->get()
+            ->toArray();
+        $incoming = self::select('datetime')
+            ->selectRaw('SUM(physical_flow) AS physical_flow')
+            ->selectRaw('SUM(commercial_flow) AS commercial_flow')
+            ->where('end_country', $country->getCode())
+            ->where('datetime', '>=', $timePeriod->getStart()->format('Y-m-d H:i'))
+            ->where('datetime', '<', $timePeriod->getEnd()->format('Y-m-d H:i'))
+            ->groupBy('datetime')
+            ->get();
+        $result = [];
+        foreach ($incoming as $index => $incomingItem) {
+            $result[] = (object)[
+                'datetime' => $incomingItem->datetime,
+                'physical_flow' => (float) $incomingItem->physical_flow - (float) $outgoing[$index]['physical_flow'],
+                'commercial_flow' => (float) $incomingItem->commercial_flow - (float) $outgoing[$index]['commercial_flow'],
+            ];
+        }
+        return collect($result);
+    }
 
 }

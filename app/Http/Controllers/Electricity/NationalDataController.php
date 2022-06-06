@@ -10,6 +10,7 @@ use App\Entities\TimePeriod\TimePeriodFactory;
 use App\Http\Controllers\Controller;
 use App\Models\Electricity\Generation;
 use App\Models\Electricity\InstalledCapacity;
+use App\Models\Electricity\InternationalHistory;
 use App\Models\Electricity\NationalHistory;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -40,6 +41,8 @@ class NationalDataController extends Controller
         return response()->json([
             'country' => $country->getDisplayName(),
             'time_period' => $timePeriod->getDisplayName(),
+            'previous_step' => $timePeriod->getPreviousStepDate()->format('Y-m-d'),
+            'next_step' =>  $timePeriod->getNextStepDate()->format('Y-m-d'),
             'data' => $this->getDataOutput($timePeriod, $country)
         ]);
     }
@@ -47,18 +50,25 @@ class NationalDataController extends Controller
 
     private function getDataOutput(TimePeriod $timePeriod, Country $country): array
     {
-        $dataSeries = DataSeriesFactory::generate(
+        $nationalDataSeries = DataSeriesFactory::generate(
             NationalHistory::periodDataOfCountry($timePeriod, $country),
             ['net_position', 'price', 'total_generation', 'load', 'load_forecast'],
             $timePeriod
         );
+        $internationalDataSeries = DataSeriesFactory::generate(
+            InternationalHistory::summedPeriodDataOfCountry($timePeriod, $country),
+            ['commercial_flow', 'physical_flow'],
+            $timePeriod
+        );
         $result = [
-            'total_generation' => $dataSeries->getValues()['total_generation'],
-            'load' => $dataSeries->getValues()['load'],
-            'load_forecast' => $dataSeries->getValues()['load_forecast'],
-            'net_position' => $dataSeries->getValues()['net_position'],
-            'price' => $dataSeries->getValues()['price'],
-            'installed_capacities' => InstalledCapacity::periodDataOfCountry($timePeriod, $country)
+            'total_generation' => $nationalDataSeries->getValues()['total_generation'],
+            'load' => $nationalDataSeries->getValues()['load'],
+            'load_forecast' => $nationalDataSeries->getValues()['load_forecast'],
+            'net_position' => $nationalDataSeries->getValues()['net_position'],
+            'price' => $nationalDataSeries->getValues()['price'],
+            'installed_capacities' => InstalledCapacity::periodDataOfCountry($timePeriod, $country),
+            'physical_flow' => $internationalDataSeries->getValues()['physical_flow'],
+            'commercial_flow' => $internationalDataSeries->getValues()['commercial_flow']
         ];
         if ($timePeriod->getName() === 'day') {
             $result['generation'] = $this->groupGenerationByPsrType(
@@ -93,8 +103,10 @@ class NationalDataController extends Controller
                 $result[$generationItem->psr_type] = [
                     'name' => $generationItem->name,
                     'hourly' => [
-                        'datetime' => $generationItem->datetime,
-                        'value' => $generationItem->value
+                        [
+                            'datetime' => $generationItem->datetime,
+                            'value' => $generationItem->value
+                        ]
                     ]
                 ];
             }

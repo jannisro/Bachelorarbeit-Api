@@ -32,7 +32,7 @@ abstract class DataSeries
     {
         if (isset($dataPoint->datetime)) {
             foreach ($this->fields as $field) {
-                $this->addFieldToValues($dataPoint, $field);
+                $this->addFieldValues($dataPoint, $field);
             }
         }
     }
@@ -44,14 +44,14 @@ abstract class DataSeries
         foreach ($this->fields as $fieldName) {
             $result[$fieldName] = [];
             foreach ($timePeriod->getSteps() as $periodStep) {
-                $result[$fieldName][] = $this->calculateMeanValueOfPeriodStep($fieldName, $periodStep);
+                $result[$fieldName][] = $this->calculateMeanValueOfPeriodStep($fieldName, $periodStep, $timePeriod);
             }
         }
         $this->values = $result;
     }
 
 
-    private function calculateMeanValueOfPeriodStep(string $fieldName, array $periodStep): array
+    private function calculateMeanValueOfPeriodStep(string $fieldName, array $periodStep, TimePeriod $timePeriod): array
     {
         $stepCount = $stepSum = 0;
         foreach ($this->values[$fieldName] as $dataPoint) {
@@ -62,14 +62,13 @@ abstract class DataSeries
             }
         }
         return [
-            'dt' => $periodStep[0]->format('Y-m-d H:i'),
+            'dt' => $this->getDateTimeDisplay($periodStep[0], $timePeriod),
             'value' => $stepCount > 0 ? round($stepSum / $stepCount, 2) : 0
         ];
     }
 
 
-
-    private function addFieldToValues(object $dataPoint, string $field): void
+    private function addFieldValues(object $dataPoint, string $field): void
     {
         if (!isset($dataPoint->$field)) {
             return; 
@@ -81,6 +80,21 @@ abstract class DataSeries
             'dt' => $dataPoint->datetime,
             'value' => $dataPoint->$field
         ];
+    }
+
+
+    private function getDateTimeDisplay(\DateTimeImmutable $dt, TimePeriod $timePeriod): string
+    {
+        switch ($timePeriod->getName()) {
+            case 'day':
+                return $dt->format('H:i');
+            case 'week':
+                return $dt->format('Y-m-d');
+            case 'month':
+                return $dt->format('W/Y');
+            case 'year':
+                return $dt->format('m/Y');
+        }
     }
 
 }

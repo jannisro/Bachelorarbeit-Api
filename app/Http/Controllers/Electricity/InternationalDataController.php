@@ -39,6 +39,8 @@ class InternationalDataController extends Controller
             'start_country' => $countries[0]->getDisplayName(),
             'end_country' => $countries[1]->getDisplayName(),
             'time_period' => $timePeriod->getDisplayName(),
+            'previous_step' => $timePeriod->getPreviousStepDate()->format('Y-m-d'),
+            'next_step' =>  $timePeriod->getNextStepDate()->format('Y-m-d'),
             'data' => $this->getDataOutput($timePeriod, $countries)
         ]);
     }

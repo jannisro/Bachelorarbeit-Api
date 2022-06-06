@@ -66,4 +66,16 @@ abstract class TimePeriod
         return $this;
     }
 
+    public function getPreviousStepDate(): \DateTimeImmutable
+    {
+        return \DateTimeImmutable::createFromMutable(
+            \DateTime::createFromImmutable($this->start)->modify('-1 day')
+        );
+    }
+
+    public function getNextStepDate(): \DateTimeImmutable 
+    {
+        return $this->end;
+    }
+
 }
