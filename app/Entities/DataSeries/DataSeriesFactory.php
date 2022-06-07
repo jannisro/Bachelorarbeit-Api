@@ -18,6 +18,9 @@ class DataSeriesFactory extends DataSeries
         if ($timePeriod->getName() !== 'day') {
             $dataSeries->accumulateData($timePeriod);
         }
+        else {
+            $dataSeries->formatDayLabels();
+        }
         return $dataSeries;
     }
 

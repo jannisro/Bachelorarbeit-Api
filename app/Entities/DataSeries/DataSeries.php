@@ -28,6 +28,16 @@ abstract class DataSeries
     }
 
 
+    public function formatDayLabels (): void
+    {
+        foreach ($this->values as $fieldName => $values) {
+            foreach ($values as $index => $dataPoint) {
+                $this->values[$fieldName][$index]['dt'] = date('H:i', strtotime($dataPoint['dt']));
+            }
+        }
+    }
+
+
     protected function addDataPoint(object $dataPoint): void
     {
         if (isset($dataPoint->datetime)) {
@@ -54,11 +64,13 @@ abstract class DataSeries
     private function calculateMeanValueOfPeriodStep(string $fieldName, array $periodStep, TimePeriod $timePeriod): array
     {
         $stepCount = $stepSum = 0;
-        foreach ($this->values[$fieldName] as $dataPoint) {
-            $pointTime = strtotime($dataPoint['dt']);
-            if ($periodStep[0]->getTimestamp() <= $pointTime && $periodStep[1]->getTimestamp() > $pointTime) {
-                ++$stepCount;
-                $stepSum += floatval($dataPoint['value']);
+        if (isset($this->values[$fieldName])) {
+            foreach ($this->values[$fieldName] as $dataPoint) {
+                $pointTime = strtotime($dataPoint['dt']);
+                if ($periodStep[0]->getTimestamp() <= $pointTime && $periodStep[1]->getTimestamp() > $pointTime) {
+                    ++$stepCount;
+                    $stepSum += floatval($dataPoint['value']);
+                }
             }
         }
         return [
@@ -88,10 +100,8 @@ abstract class DataSeries
         switch ($timePeriod->getName()) {
             case 'day':
                 return $dt->format('H:i');
-            case 'week':
-                return $dt->format('Y-m-d');
             case 'month':
-                return $dt->format('W/Y');
+                return $dt->format('Y-m-d');
             case 'year':
                 return $dt->format('m/Y');
         }
