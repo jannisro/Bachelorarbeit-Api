@@ -49,7 +49,7 @@ class InternationalDataController extends Controller
     private function getDataOutput(TimePeriod $timePeriod, array $countries): array
     {
         $dataSeries = DataSeriesFactory::generate(
-            InternationalHistory::periodDataOfCountry($timePeriod, $countries),
+            InternationalHistory::periodDataOfCountryRelation($timePeriod, $countries),
             ['commercial_flow', 'physical_flow', 'net_transfer_capacity'],
             $timePeriod
         );
