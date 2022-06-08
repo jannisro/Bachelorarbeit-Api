@@ -47,10 +47,12 @@ class InternationalHistory extends Model
             ->get();
         $result = [];
         foreach ($incoming as $index => $incomingItem) {
+            $outgoingPhysicalFlow = isset($outgoing[$index]) ? (float) $outgoing[$index]['physical_flow'] : 0;
+            $outgoingCommercialFlow = isset($outgoing[$index]) ? (float) $outgoing[$index]['commercial_flow'] : 0;
             $result[] = (object)[
                 'datetime' => $incomingItem->datetime,
-                'physical_flow' => (float) $incomingItem->physical_flow - (float) $outgoing[$index]['physical_flow'],
-                'commercial_flow' => (float) $incomingItem->commercial_flow - (float) $outgoing[$index]['commercial_flow'],
+                'physical_flow' => (float) $incomingItem->physical_flow - $outgoingPhysicalFlow,
+                'commercial_flow' => (float) $incomingItem->commercial_flow - $outgoingCommercialFlow,
             ];
         }
         return collect($result);
