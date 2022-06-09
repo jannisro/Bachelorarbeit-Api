@@ -8,6 +8,7 @@ use App\Entities\DataSeries\DataSeriesFactory;
 use App\Entities\TimePeriod\TimePeriod;
 use App\Entities\TimePeriod\TimePeriodFactory;
 use App\Http\Controllers\Controller;
+use App\Models\MeanValue;
 use App\Models\Weather\Forecast;
 use App\Models\Weather\History;
 use App\Models\Weather\Station;
@@ -49,21 +50,42 @@ class NationalDataController extends Controller
 
     private function getDataOutput(TimePeriod $timePeriod, Country $country): array
     {
-        $overallDataSeries = DataSeriesFactory::generate(
+        $countryData = DataSeriesFactory::generate(
             $this->historyOrForecast($timePeriod, 'periodDataOfCountry', [$timePeriod, $country]), 
             ['temperature', 'wind', 'clouds', 'rain', 'snow'],
             $timePeriod
-        );
+        )->getValues();
         return [
             'stations' => $this->weatherPerStation($timePeriod, $country),
             'overall' => [
-                'temperature' => $overallDataSeries->getValues()['temperature'],
-                'wind' => $overallDataSeries->getValues()['wind'],
-                'clouds' => $overallDataSeries->getValues()['clouds'],
-                'rain' => $overallDataSeries->getValues()['rain'],
-                'snow' => $overallDataSeries->getValues()['snow']
+                'temperature' => $this->meanDeviationsOfField('temperature', $countryData),
+                'wind' => $this->meanDeviationsOfField('wind', $countryData),
+                'clouds' => $this->meanDeviationsOfField('clouds', $countryData),
+                'rain' => $this->meanDeviationsOfField('rain', $countryData),
+                'snow' => $this->meanDeviationsOfField('snow', $countryData)
             ]
         ];
+    }
+
+
+    private function meanDeviationsOfField(string $fieldName, array $countryData): array
+    {
+        try {
+            $mean = MeanValue::select('value')
+                ->where('name', "weather_$fieldName")
+                ->get()
+                ->first()
+                ->value;
+            return array_map(function ($item) use ($mean) {
+                if ((int) $mean === 0) $mean = 0.0001;
+                return [
+                    'dt' => $item['dt'],
+                    'value' => round(((float) $item['value'] / (float) $mean - 1) * 100, 2)
+                ];
+            }, $countryData[$fieldName]);
+        } catch (\Exception $e) {
+            return $countryData[$fieldName];
+        }
     }
 
 

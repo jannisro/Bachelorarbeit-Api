@@ -12,6 +12,7 @@ use App\Models\Electricity\Generation;
 use App\Models\Electricity\InstalledCapacity;
 use App\Models\Electricity\InternationalHistory;
 use App\Models\Electricity\NationalHistory;
+use App\Models\MeanValue;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
@@ -60,6 +61,9 @@ class NationalDataController extends Controller
             ['commercial_flow', 'physical_flow'],
             $timePeriod
         );
+        $allMeans = MeanValue::select(['name', 'value'])
+            ->where('name', 'LIKE', 'electricity_%')
+            ->get();
         $result = [
             'total_generation' => $nationalDataSeries->getValues()['total_generation'],
             'load' => $nationalDataSeries->getValues()['load'],
@@ -68,7 +72,15 @@ class NationalDataController extends Controller
             'price' => $nationalDataSeries->getValues()['price'],
             'installed_capacities' => InstalledCapacity::periodDataOfCountry($timePeriod, $country),
             'physical_flow' => $internationalDataSeries->getValues()['physical_flow'],
-            'commercial_flow' => $internationalDataSeries->getValues()['commercial_flow']
+            'commercial_flow' => $internationalDataSeries->getValues()['commercial_flow'],
+            'mean_values' => [
+                'generation' => $allMeans->where('name', 'electricity_generation')->first()->value,
+                'load' => $allMeans->where('name', 'electricity_load')->first()->value,
+                'price' => $allMeans->where('name', 'electricity_price')->first()->value,
+                'flow_commercial' => $allMeans->where('name', 'electricity_flow_commercial')->first()->value,
+                'flow_physical' => $allMeans->where('name', 'electricity_flow_physical')->first()->value,
+                'ntc' => $allMeans->where('name', 'electricity_ntc')->first()->value,
+            ]
         ];
         if ($timePeriod->getName() === 'day') {
             $result['generation'] = $this->groupGenerationByPsrType(
