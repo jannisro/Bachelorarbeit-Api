@@ -76,6 +76,7 @@ class NationalDataController extends Controller
             'mean_values' => [
                 'generation' => $allMeans->where('name', 'electricity_generation')->first()->value,
                 'load' => $allMeans->where('name', 'electricity_load')->first()->value,
+                'net_position' => $allMeans->where('name', 'electricity_net_position')->first()->value,
                 'price' => $allMeans->where('name', 'electricity_price')->first()->value,
                 'flow_commercial' => $allMeans->where('name', 'electricity_flow_commercial')->first()->value,
                 'flow_physical' => $allMeans->where('name', 'electricity_flow_physical')->first()->value,
