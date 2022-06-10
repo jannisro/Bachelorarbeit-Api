@@ -58,7 +58,7 @@ class NationalDataController extends Controller
         );
         $internationalDataSeries = DataSeriesFactory::generate(
             InternationalHistory::summedPeriodDataOfCountry($timePeriod, $country),
-            ['commercial_flow', 'physical_flow'],
+            ['commercial_flow', 'physical_flow', 'net_transfer_capacity'],
             $timePeriod
         );
         $allMeans = MeanValue::select(['name', 'value'])
@@ -73,13 +73,14 @@ class NationalDataController extends Controller
             'installed_capacities' => InstalledCapacity::periodDataOfCountry($timePeriod, $country),
             'physical_flow' => $internationalDataSeries->getValues()['physical_flow'],
             'commercial_flow' => $internationalDataSeries->getValues()['commercial_flow'],
+            'net_transfer_capacity' => $internationalDataSeries->getValues()['net_transfer_capacity'],
             'mean_values' => [
                 'generation' => $allMeans->where('name', 'electricity_generation')->first()->value,
                 'load' => $allMeans->where('name', 'electricity_load')->first()->value,
                 'net_position' => $allMeans->where('name', 'electricity_net_position')->first()->value,
                 'price' => $allMeans->where('name', 'electricity_price')->first()->value,
-                'flow_commercial' => $allMeans->where('name', 'electricity_flow_commercial')->first()->value,
-                'flow_physical' => $allMeans->where('name', 'electricity_flow_physical')->first()->value,
+                'commercial_flow' => $allMeans->where('name', 'electricity_commercial_flow')->first()->value,
+                'physical_flow' => $allMeans->where('name', 'electricity_physical_flow')->first()->value,
                 'ntc' => $allMeans->where('name', 'electricity_ntc')->first()->value,
             ]
         ];

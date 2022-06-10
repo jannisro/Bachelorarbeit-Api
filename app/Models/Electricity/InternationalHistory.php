@@ -31,6 +31,7 @@ class InternationalHistory extends Model
         $outgoing = self::select('datetime')
             ->selectRaw('SUM(physical_flow) AS physical_flow')
             ->selectRaw('SUM(commercial_flow) AS commercial_flow')
+            ->selectRaw('SUM(net_transfer_capacity) AS net_transfer_capacity')
             ->where('start_country', $country->getCode())
             ->where('datetime', '>=', $timePeriod->getStart()->format('Y-m-d H:i'))
             ->where('datetime', '<', $timePeriod->getEnd()->format('Y-m-d H:i'))
@@ -40,6 +41,7 @@ class InternationalHistory extends Model
         $incoming = self::select('datetime')
             ->selectRaw('SUM(physical_flow) AS physical_flow')
             ->selectRaw('SUM(commercial_flow) AS commercial_flow')
+            ->selectRaw('SUM(net_transfer_capacity) AS net_transfer_capacity')
             ->where('end_country', $country->getCode())
             ->where('datetime', '>=', $timePeriod->getStart()->format('Y-m-d H:i'))
             ->where('datetime', '<', $timePeriod->getEnd()->format('Y-m-d H:i'))
@@ -49,10 +51,12 @@ class InternationalHistory extends Model
         foreach ($incoming as $index => $incomingItem) {
             $outgoingPhysicalFlow = isset($outgoing[$index]) ? (float) $outgoing[$index]['physical_flow'] : 0;
             $outgoingCommercialFlow = isset($outgoing[$index]) ? (float) $outgoing[$index]['commercial_flow'] : 0;
+            $outgoingNtc = isset($outgoing[$index]) ? (float) $outgoing[$index]['net_transfer_capacity'] : 0;
             $result[] = (object)[
                 'datetime' => $incomingItem->datetime,
                 'physical_flow' => (float) $incomingItem->physical_flow - $outgoingPhysicalFlow,
                 'commercial_flow' => (float) $incomingItem->commercial_flow - $outgoingCommercialFlow,
+                'net_transfer_capacity' => (float) $incomingItem->net_transfer_capacity - $outgoingNtc,
             ];
         }
         return collect($result);
