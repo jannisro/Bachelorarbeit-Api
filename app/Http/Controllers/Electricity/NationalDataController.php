@@ -56,14 +56,13 @@ class NationalDataController extends Controller
             ['net_position', 'price', 'total_generation', 'load', 'load_forecast'],
             $timePeriod
         );
+
         $internationalDataSeries = DataSeriesFactory::generate(
             InternationalHistory::summedPeriodDataOfCountry($timePeriod, $country),
             ['commercial_flow', 'physical_flow', 'net_transfer_capacity'],
             $timePeriod
         );
-        $allMeans = MeanValue::select(['name', 'value'])
-            ->where('name', 'LIKE', 'electricity_%')
-            ->get();
+
         $result = [
             'total_generation' => $nationalDataSeries->getValues()['total_generation'],
             'load' => $nationalDataSeries->getValues()['load'],
@@ -75,20 +74,22 @@ class NationalDataController extends Controller
             'commercial_flow' => $internationalDataSeries->getValues()['commercial_flow'],
             'net_transfer_capacity' => $internationalDataSeries->getValues()['net_transfer_capacity'],
             'mean_values' => [
-                'generation' => $allMeans->where('name', 'electricity_generation')->first()->value,
-                'load' => $allMeans->where('name', 'electricity_load')->first()->value,
-                'net_position' => $allMeans->where('name', 'electricity_net_position')->first()->value,
-                'price' => $allMeans->where('name', 'electricity_price')->first()->value,
-                'commercial_flow' => $allMeans->where('name', 'electricity_commercial_flow')->first()->value,
-                'physical_flow' => $allMeans->where('name', 'electricity_physical_flow')->first()->value,
-                'ntc' => $allMeans->where('name', 'electricity_ntc')->first()->value,
+                'generation' => MeanValue::singleValue('electricity_generation', $country),
+                'load' => MeanValue::singleValue('electricity_load', $country),
+                'net_position' => MeanValue::singleValue('electricity_net_position', $country),
+                'price' => MeanValue::singleValue('electricity_price', $country),
+                'commercial_flow' => MeanValue::singleValue('electricity_commercial_flow', $country),
+                'physical_flow' => MeanValue::singleValue('electricity_physical_flow', $country),
+                'ntc' => MeanValue::singleValue('electricity_net_transfer_capacity', $country),
             ]
         ];
+
         if ($timePeriod->getName() === 'day') {
             $result['generation'] = $this->groupGenerationByPsrType(
                 $this->getGenerationOfDay($timePeriod->getStart(), $country)
             );
         }
+        
         return $result;
     }
 
