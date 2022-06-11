@@ -4,6 +4,7 @@ use App\Http\Controllers\AvailableCountriesController;
 use App\Http\Controllers\BorderRelationsController;
 use App\Http\Controllers\Electricity\InternationalDataController;
 use App\Http\Controllers\Electricity\NationalDataController as NationalElectricityDataController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Weather\NationalDataController as NationalWeatherDataController;
 use App\Http\Controllers\Weather\LocationController;
 use Illuminate\Support\Facades\Route;
@@ -62,3 +63,8 @@ Route::/*middleware('auth:sanctum')
 Route::/*middleware('auth:sanctum')
     ->*/get('/weather/location/{country?}', LocationController::class)
     ->where('country', '[A-Z][A-Z]');
+
+
+
+// Search for past days by attribute values
+Route::/*middleware('auth:sanctum')->*/get('/search', SearchController::class);
