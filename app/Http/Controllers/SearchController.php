@@ -2,13 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Electricity\InternationalHistory;
 use App\Models\Electricity\NationalHistory;
-use App\Models\Weather\History;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class SearchController extends Controller
@@ -16,51 +13,55 @@ class SearchController extends Controller
     
     public function __invoke (Request $req): JsonResponse
     {
-        $nationalFields = ['country', 'total_generation', 'load', 'load_forecast', 'price', 'net_position'];
-        $nationalBuilder = NationalHistory::select(['country'])->selectRaw('DATE(`datetime`) AS `date`');
+        $fields = [
+            'total_generation', 'load', 'load_forecast', 'price', 'net_position', 'commercial_flow', 
+            'physical_flow', 'net_transfer_capacity', 'temperature', 'clouds', 'wind', 'rain', 'snow'
+        ];
 
-        $internationalFields = ['country_start', 'country_end', 'commercial_flow', 'physical_flow', 'net_transfer_capacity'];
-        $internationalBuilder = InternationalHistory::selectRaw('`start_country` AS `country`')->selectRaw('DATE(`datetime`) AS `date`');
+        $builder = NationalHistory::select('weather_points_history.country')
+            ->selectRaw('DATE(weather_points_history.`datetime`) AS `date`');
+        $builder = $this->modelWithJoins($builder);
+        $builder = $this->modelWithPeriodRange($builder, $req);
+        $builder = $this->modelWithCountry($builder, $req);
+        $builder = $this->modelWithExistingAttributes($builder, $fields, $req);
+        $builder = $builder->groupBy('weather_points_history.country')
+            ->groupBy('date')
+            ->limit(30);
 
-        $weatherFields = ['country', 'temperature', 'clouds', 'wind', 'rain', 'snow'];
-        $weatherBuilder = History::select(['country'])->selectRaw('DATE(`datetime`) AS `date`');
-
-        return $this->outputUnifiedResults([
-            $this->queryResult($nationalBuilder, $nationalFields, $req),
-            $this->queryResult($internationalBuilder, $internationalFields, $req),
-            $this->queryResult($weatherBuilder, $weatherFields, $req),
-        ]);
-        
-    }
-
-
-    private function outputUnifiedResults (array $segmentedResults): JsonResponse 
-    {
-        $result = $segmentedResults[0] ? $segmentedResults[0]->toArray() : [];
-        foreach ($segmentedResults as $resultSegment) {
-            $result = array_merge($result, $this->findMissingEntries($result, $resultSegment));
-        }
         return response()->json([
-            'results' => $result
+            'results' => $builder->get()
         ]);
     }
 
 
-    private function queryResult (Builder $builder, array $availableAttributes, Request $req): Collection
+    private function modelWithJoins (Builder $builder): Builder
     {
-        $result = $this->modelWithPeriodRange($builder, $req);
-        $result = $this->modelWithExistingAttributes($result, $availableAttributes, $req); 
-        return $result->limit(80)
-            ->groupBy('country')
-            ->groupBy(DB::raw('DATE(`datetime`)'))
-            ->get();
+        return $builder->join('electricity_history_international', function ($join) {
+            $join->on('electricity_history_international.datetime', '=', 'electricity_history_national.datetime');
+            $join->on('electricity_history_international.start_country', '=', 'electricity_history_national.country');
+        })
+            ->join('weather_points_history', function ($join) {
+                $join->on('weather_points_history.datetime', '=', 'electricity_history_national.datetime');
+                $join->on('weather_points_history.country', '=', 'electricity_history_national.country');
+            });
+    }
+
+
+    private function modelWithCountry (Builder $builder, Request $req): Builder
+    {
+        return $req->has('country')
+            ? $builder->where('weather_points_history.country', $req->country)
+            : $builder;
     }
 
 
     private function modelWithPeriodRange (Builder $builder, Request $req): Builder
     {
         return $req->has(['period_start', 'period_end'])
-            ? $builder->where([ ['datetime', '>=', $req->period_start], ['datetime', '<=', $req->period_end] ])
+            ? $builder->where([ 
+                ['weather_points_history.datetime', '>=', $req->period_start], 
+                ['weather_points_history.datetime', '<=', $req->period_end] 
+            ])
             : $builder;
     }
 
@@ -72,29 +73,7 @@ class SearchController extends Controller
             if ($req->has(["{$attr}_start", "{$attr}_end"])) {
                 $from = "{$attr}_start";
                 $to = "{$attr}_end";
-                $result = $builder->where([ [$attr, '>=', $req->$from], [$attr, '<=', $req->$to] ]);
-            }
-        }
-        return $result;
-    }
-
-
-    private function findMissingEntries (array $existingEntries, Collection $entriesToCheck): array
-    {
-        $result = [];
-        foreach ($entriesToCheck as $newRow) {
-            $rowExists = false;
-            foreach ($existingEntries as $existingRow) {
-                if ($existingRow['date'] === $newRow->date && $existingRow['country'] === $newRow->country) {
-                    $rowExists = true;
-                    break;
-                }
-            }
-            if (!$rowExists) {
-                $result[] = [
-                    'date' => $newRow->date,
-                    'country' => $newRow->country
-                ];
+                $result = $builder->where([ [$attr, '>=', $req->$from], [$attr, '<', $req->$to] ]);
             }
         }
         return $result;
