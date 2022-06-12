@@ -21,6 +21,7 @@ class AvailableCountriesController extends Controller
         if (is_null($code)) {
             return [
                 'countries' => AvailableCountry::select(['short_name', 'official_name', 'code'])
+                    ->orderBy('short_name', 'ASC')
                     ->get()
             ];
         }
