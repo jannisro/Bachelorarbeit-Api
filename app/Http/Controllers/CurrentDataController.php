@@ -2,10 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Entities\Country\Country;
-use App\Entities\TimePeriod\TimePeriodFactory;
 use App\Models\AvailableCountry;
-use App\Models\Electricity\InternationalHistory;
 use App\Models\Electricity\NationalHistory;
 use App\Models\Weather\History;
 use App\Models\Weather\Station;
