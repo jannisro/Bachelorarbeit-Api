@@ -80,7 +80,7 @@ class NationalDataController extends Controller
                 if ((int) $mean === 0) $mean = 0.0001;
                 return [
                     'dt' => $item['dt'],
-                    'value' => round(((float) $item['value'] / (float) $mean - 1) * 100, 2)
+                    'value' => round((((float) $item['value'] / (float) $mean) - 1) * 100, 2)
                 ];
             }, $countryData[$fieldName]);
         } catch (\Exception $e) {

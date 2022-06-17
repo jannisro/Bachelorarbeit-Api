@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AvailableCountriesController;
 use App\Http\Controllers\BorderRelationsController;
+use App\Http\Controllers\CurrentDataController;
 use App\Http\Controllers\Electricity\InternationalDataController;
 use App\Http\Controllers\Electricity\NationalDataController as NationalElectricityDataController;
 use App\Http\Controllers\SearchController;
@@ -68,3 +69,8 @@ Route::/*middleware('auth:sanctum')
 
 // Search for past days by attribute values
 Route::/*middleware('auth:sanctum')->*/get('/search', SearchController::class);
+
+
+
+// Current Data of all countries to display on map
+Route::/*middleware('auth:sanctum')->*/get('/current', CurrentDataController::class);
