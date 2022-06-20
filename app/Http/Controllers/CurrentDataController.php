@@ -48,11 +48,10 @@ class CurrentDataController extends Controller
     {
         $result = $existingResult;
         foreach (AvailableCountry::get() as $country) {
-            $weatherStationAmount = Station::where('country', $country->code)->count();
             $data = History::select('country')
-                ->selectRaw("SUM(temperature)/$weatherStationAmount AS temperature")
-                ->selectRaw("SUM(wind)/$weatherStationAmount AS wind")
-                ->selectRaw("SUM(clouds)/$weatherStationAmount AS clouds")
+                ->selectRaw("AVG(temperature) AS temperature")
+                ->selectRaw("AVG(wind) AS wind")
+                ->selectRaw("AVG(clouds) AS clouds")
                 ->where('country', $country->code)
                 ->where('datetime', $datetime->format('Y-m-d H:00'))
                 ->groupBy('datetime')
