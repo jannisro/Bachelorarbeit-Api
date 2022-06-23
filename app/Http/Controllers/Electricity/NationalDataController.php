@@ -12,7 +12,7 @@ use App\Models\Electricity\Generation;
 use App\Models\Electricity\InstalledCapacity;
 use App\Models\Electricity\InternationalHistory;
 use App\Models\Electricity\NationalHistory;
-use App\Models\MeanValue;
+use App\Services\DeviationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
@@ -26,7 +26,7 @@ class NationalDataController extends Controller
         string $countryCode, 
         string $timePeriodName, 
         string $date
-    ): JsonResponse
+    )//: JsonResponse
     {
         $timePeriod = TimePeriodFactory::generate($date, $timePeriodName);
         $country = CountryFactory::generate($countryCode);
@@ -63,6 +63,18 @@ class NationalDataController extends Controller
             $timePeriod
         );
 
+        $nationalDeviations = DeviationService::calculate(
+            $timePeriod, 
+            NationalHistory::where('country', $country->getCode()), 
+            ['net_position', 'price', 'total_generation', 'load']
+        );
+
+        $internationalDeviations = DeviationService::calculate(
+            $timePeriod, 
+            InternationalHistory::where('start_country', $country->getCode()), 
+            ['commercial_flow', 'physical_flow', 'net_transfer_capacity']
+        );
+
         $result = [
             'total_generation' => $nationalDataSeries->getValues()['total_generation'],
             'load' => $nationalDataSeries->getValues()['load'],
@@ -74,13 +86,13 @@ class NationalDataController extends Controller
             'commercial_flow' => $internationalDataSeries->getValues()['commercial_flow'],
             'net_transfer_capacity' => $internationalDataSeries->getValues()['net_transfer_capacity'],
             'mean_values' => [
-                'generation' => MeanValue::singleValue('electricity_generation', $country),
-                'load' => MeanValue::singleValue('electricity_load', $country),
-                'net_position' => MeanValue::singleValue('electricity_net_position', $country),
-                'price' => MeanValue::singleValue('electricity_price', $country),
-                'commercial_flow' => MeanValue::singleValue('electricity_commercial_flow', $country),
-                'physical_flow' => MeanValue::singleValue('electricity_physical_flow', $country),
-                'ntc' => MeanValue::singleValue('electricity_net_transfer_capacity', $country),
+                'generation' => $nationalDeviations['total_generation'],
+                'load' => $nationalDeviations['load'],
+                'net_position' => $nationalDeviations['net_position'],
+                'price' => $nationalDeviations['price'],
+                'commercial_flow' => $internationalDeviations['commercial_flow'],
+                'physical_flow' => $internationalDeviations['physical_flow'],
+                'ntc' => $internationalDeviations['net_transfer_capacity'],
             ]
         ];
 
