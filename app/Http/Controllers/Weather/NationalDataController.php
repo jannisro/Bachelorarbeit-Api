@@ -8,6 +8,7 @@ use App\Entities\DataSeries\DataSeriesFactory;
 use App\Entities\TimePeriod\TimePeriod;
 use App\Entities\TimePeriod\TimePeriodFactory;
 use App\Http\Controllers\Controller;
+use App\Models\MeanValue;
 use App\Models\Weather\Forecast;
 use App\Models\Weather\History;
 use App\Models\Weather\Station;
@@ -50,18 +51,7 @@ class NationalDataController extends Controller
 
     private function getDataOutput(TimePeriod $timePeriod, Country $country): array
     {
-        $countryData = DataSeriesFactory::generate(
-            $this->historyOrForecast($timePeriod, 'periodDataOfCountry', [$timePeriod, $country]), 
-            ['temperature', 'wind', 'clouds', 'rain', 'snow'],
-            $timePeriod
-        )->getValues();
-
-        $deviations = DeviationService::calculate(
-            $timePeriod,
-            History::where('country', $country->getCode()),
-            ['temperature', 'wind', 'clouds', 'rain', 'snow']
-        );
-
+        $deviations = $this->overallAverageDeviations($country, $timePeriod);
         return [
             'stations' => $this->weatherPerStation($timePeriod, $country),
             'overall' => [
@@ -72,6 +62,51 @@ class NationalDataController extends Controller
                 'snow' => $deviations['snow']
             ]
         ];
+    }
+
+
+    private function overallAverageDeviations(Country $country, TimePeriod $timePeriod): array
+    {
+        $fields = ['temperature', 'wind', 'clouds', 'rain', 'snow'];
+        $datarows = DataSeriesFactory::generate(
+            $this->historyOrForecast($timePeriod, 'periodDataOfCountry', [$timePeriod, $country]), 
+            $fields,
+            $timePeriod
+        )->getValues();
+
+        $periodAvg = DeviationService::longTermAverage(
+            $timePeriod, 
+            History::where('country', $country->getCode()), 
+            $fields
+        );
+
+        $result = [];
+        array_map(function ($field) { $result[$field] = []; }, $fields);
+
+        if (!is_null($periodAvg)) {
+            for ($i = 0; $i < count($datarows['temperature']); $i++) {
+                foreach ($fields as $field) {
+                    $result[$field][] = [
+                        'dt' => $datarows[$field][$i]['dt'],
+                        'value' => $this->deviation($datarows[$field][$i]['value'], $periodAvg[$field])
+                    ]; 
+                }
+            }
+        }
+
+        return $result;
+    }
+
+
+    private function deviation (int|float $currentValue, int|float $longTermAverage): int|float
+    {
+        if ($longTermAverage == 0 && $currentValue == 0) {
+            return 0;
+        }
+        else if ($longTermAverage == 0) {
+            return round((($currentValue / 0.01) - 1) * 100, 2);
+        }
+        return round((($currentValue / $longTermAverage) - 1) * 100, 2);
     }
 
 

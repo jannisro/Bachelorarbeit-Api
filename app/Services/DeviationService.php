@@ -21,8 +21,8 @@ class DeviationService
      */
     public static function calculate(TimePeriod $timePeriod, Builder $builder, array $modelFields): array
     {
-        $timePeriodMean = self::meanOfTimePeriod($timePeriod, clone $builder, $modelFields);
-        $longTermMean = self::longTermMean($timePeriod, clone $builder, $modelFields);
+        $timePeriodMean = self::timePeriodAverage($timePeriod, clone $builder, $modelFields);
+        $longTermMean = self::longTermAverage($timePeriod, clone $builder, $modelFields);
  
         $result = [];
         foreach ($modelFields as $modelField) {
@@ -47,7 +47,7 @@ class DeviationService
 
 
 
-    private static function meanOfTimePeriod(TimePeriod $timePeriod, Builder $builder, array $modelFields): ?Model
+    public static function timePeriodAverage(TimePeriod $timePeriod, Builder $builder, array $modelFields): ?Model
     {
         $builder->where('datetime', '>=', $timePeriod->getStart()->format('Y-m-d H:i'))
                 ->where('datetime', '<', $timePeriod->getEnd()->format('Y-m-d H:i'));
@@ -62,7 +62,7 @@ class DeviationService
 
 
 
-    private static function longTermMean(TimePeriod $timePeriod, Builder $builder, array $modelFields): ?Model
+    public static function longTermAverage(TimePeriod $timePeriod, Builder $builder, array $modelFields): ?Model
     {
         $periodStart = \DateTime::createFromImmutable($timePeriod->getStart());
 
