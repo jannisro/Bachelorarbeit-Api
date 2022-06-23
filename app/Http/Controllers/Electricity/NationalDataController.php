@@ -86,13 +86,13 @@ class NationalDataController extends Controller
             'commercial_flow' => $internationalDataSeries->getValues()['commercial_flow'],
             'net_transfer_capacity' => $internationalDataSeries->getValues()['net_transfer_capacity'],
             'mean_values' => [
-                'generation' => $nationalDeviations['total_generation'],
-                'load' => $nationalDeviations['load'],
-                'net_position' => $nationalDeviations['net_position'],
-                'price' => $nationalDeviations['price'],
-                'commercial_flow' => $internationalDeviations['commercial_flow'],
-                'physical_flow' => $internationalDeviations['physical_flow'],
-                'ntc' => $internationalDeviations['net_transfer_capacity'],
+                [ 'name' => 'Generation', 'value' => $nationalDeviations['total_generation'] ],
+                [ 'name' => 'Load', 'value' => $nationalDeviations['load'] ],
+                [ 'name' => 'Net Position', 'value' => $nationalDeviations['net_position'] ],
+                [ 'name' => 'Price', 'value' => $nationalDeviations['price'] ],
+                [ 'name' => 'Total Commercial Flow', 'value' => $internationalDeviations['commercial_flow'] ],
+                [ 'name' => 'Total Physical Flow', 'value' => $internationalDeviations['physical_flow'] ],
+                [ 'name' => 'Total NTC', 'value' => $internationalDeviations['net_transfer_capacity'] ],
             ]
         ];
 
