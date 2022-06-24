@@ -13,7 +13,6 @@ use App\Models\Weather\Forecast;
 use App\Models\Weather\History;
 use App\Models\Weather\Station;
 use App\Services\DeviationService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 
@@ -21,12 +20,7 @@ class NationalDataController extends Controller
 {
     
     
-    public function __invoke(
-        Request $req, 
-        string $countryCode, 
-        string $timePeriodName, 
-        string $date
-    ): JsonResponse
+    public function __invoke(string $countryCode, string $timePeriodName, string $date): JsonResponse
     {
         $timePeriod = TimePeriodFactory::generate($date, $timePeriodName);
         $country = CountryFactory::generate($countryCode);

@@ -5,6 +5,8 @@ use App\Http\Controllers\BorderRelationsController;
 use App\Http\Controllers\CurrentDataController;
 use App\Http\Controllers\Electricity\InternationalDataController;
 use App\Http\Controllers\Electricity\NationalDataController as NationalElectricityDataController;
+use App\Http\Controllers\Electricity\ExportController as ElectricityExportController;
+use App\Http\Controllers\Weather\ExportController as WeatherExportController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Weather\NationalDataController as NationalWeatherDataController;
 use App\Http\Controllers\Weather\LocationController;
@@ -49,6 +51,17 @@ Route::/*middleware('auth:sanctum')
 
 
 
+// Export electricity data to CSV
+Route::/*middleware('auth:sanctum')
+    ->*/get('/electricity/export/{areaName}/{countryCode}/{date}', ElectricityExportController::class)
+    ->where([
+        'areaName' => 'national|international',
+        'countryCode' => '[A-Z][A-Z]',
+        'date' => '\d\d\d\d-\d\d-\d\d'
+    ]);
+
+
+
 // National Weather Data
 Route::/*middleware('auth:sanctum')
     ->*/get('/weather/national/{country}/{timePeriodName}/{date}', NationalWeatherDataController::class)
@@ -64,6 +77,17 @@ Route::/*middleware('auth:sanctum')
 Route::/*middleware('auth:sanctum')
     ->*/get('/weather/location/{country?}', LocationController::class)
     ->where('country', '[A-Z][A-Z]');
+
+
+
+// Export weather data to CSV
+Route::/*middleware('auth:sanctum')
+    ->*/get('/weather/export/{countryCode}/{date}', WeatherExportController::class)
+    ->where([
+        'areaName' => 'national|international',
+        'countryCode' => '[A-Z][A-Z]',
+        'date' => '\d\d\d\d-\d\d-\d\d'
+    ]);
 
 
 

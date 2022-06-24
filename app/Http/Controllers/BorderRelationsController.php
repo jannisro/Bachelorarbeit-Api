@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AvailableCountry;
 use App\Models\AvailableCountryRelation;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 class BorderRelationsController extends Controller
 {
     
-    public function __invoke(Request $req, string $code): JsonResponse
+    public function __invoke(string $code): JsonResponse
     {
         return response()->json([
             'borders' => $this->fetchBorders($code)

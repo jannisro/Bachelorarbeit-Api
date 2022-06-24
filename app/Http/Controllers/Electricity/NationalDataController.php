@@ -13,7 +13,6 @@ use App\Models\Electricity\InstalledCapacity;
 use App\Models\Electricity\InternationalHistory;
 use App\Models\Electricity\NationalHistory;
 use App\Services\DeviationService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 
@@ -22,7 +21,6 @@ class NationalDataController extends Controller
     
     
     public function __invoke(
-        Request $req, 
         string $countryCode, 
         string $timePeriodName, 
         string $date

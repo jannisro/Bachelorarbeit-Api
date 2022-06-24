@@ -8,7 +8,6 @@ use App\Entities\TimePeriod\TimePeriod;
 use App\Entities\TimePeriod\TimePeriodFactory;
 use App\Http\Controllers\Controller;
 use App\Models\Electricity\InternationalHistory;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class InternationalDataController extends Controller
@@ -16,7 +15,6 @@ class InternationalDataController extends Controller
     
     
     public function __invoke(
-        Request $req, 
         string $countryCode1, 
         string $countryCode2, 
         string $timePeriodName, 

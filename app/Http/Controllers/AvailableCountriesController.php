@@ -4,13 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\AvailableCountry;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 
 class AvailableCountriesController extends Controller
 {
     
-    public function __invoke(Request $req, ?string $code = null): JsonResponse
+    public function __invoke(?string $code = null): JsonResponse
     {
         return response()->json($this->fetchResult($code));
     }

@@ -5,15 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\AvailableCountry;
 use App\Models\Electricity\NationalHistory;
 use App\Models\Weather\History;
-use App\Models\Weather\Station;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 
 class CurrentDataController extends Controller
 {
     
-    public function __invoke (Request $request): JsonResponse
+    public function __invoke (): JsonResponse
     {
         $targetDatetime = new \DateTimeImmutable('-1 day');
         $resultWithElectricity = $this->electricityData($targetDatetime);

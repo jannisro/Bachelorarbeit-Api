@@ -5,13 +5,12 @@ namespace App\Http\Controllers\Weather;
 use App\Http\Controllers\Controller;
 use App\Models\Weather\Station;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 class LocationController extends Controller
 {
     
-    public function __invoke(Request $req, ?string $country = null): JsonResponse
+    public function __invoke(?string $country = null): JsonResponse
     {
         return response()->json([
             'locations' => $this->fetchLocations($country)
