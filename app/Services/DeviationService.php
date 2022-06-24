@@ -72,17 +72,17 @@ class DeviationService
         }
         else if ($timePeriod->getName() === 'month') {
             $builder->where('datetime', '>=', $periodStart->modify('-3 months')->format('Y-m-d H:i'))
-                    ->where('datetime', '<', $timePeriod->getStart()->format('Y-m-d H:i'));
+                    ->where('datetime', '<', $timePeriod->getEnd()->format('Y-m-d H:i'));
         }
         else if ($timePeriod->getName() === 'year') {
             $builder->where('datetime', '>=', $periodStart->modify('-3 years')->format('Y-m-d H:i'))
-                    ->where('datetime', '<', $timePeriod->getStart()->format('Y-m-d H:i'));
+                    ->where('datetime', '<', $timePeriod->getEnd()->format('Y-m-d H:i'));
         }
 
         foreach ($modelFields as $field) {
             $builder->selectRaw("AVG(`$field`) AS `$field`");
         }
-
+        
         return ($builder && $builder->get()->count() === 1) 
             ? $builder->first() 
             : null;

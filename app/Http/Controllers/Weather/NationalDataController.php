@@ -82,7 +82,7 @@ class NationalDataController extends Controller
                 foreach ($fields as $field) {
                     $result[$field][] = [
                         'dt' => $datarows[$field][$i]['dt'],
-                        'value' => $this->deviation($datarows[$field][$i]['value'], $periodAvg[$field])
+                        'value' => $this->deviation($datarows[$field][$i]['value'] ?? 0, $periodAvg[$field] ?? 0)
                     ]; 
                 }
             }
