@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AvailableCountry;
 use App\Models\Electricity\NationalHistory;
-use App\Models\Weather\History;
+use App\Models\Weather\Forecast;
 use Illuminate\Http\JsonResponse;
 
 class CurrentDataController extends Controller
@@ -12,11 +12,10 @@ class CurrentDataController extends Controller
     
     public function __invoke (): JsonResponse
     {
-        $targetDatetime = new \DateTimeImmutable('-1 day');
-        $resultWithElectricity = $this->electricityData($targetDatetime);
+        $targetDatetime = new \DateTimeImmutable(date('Y-m-d H:00', strtotime('-2 hours')));
         return response()->json([
             'datetime' => $targetDatetime->format('Y-m-d H:00'),
-            'data' => $this->addWeatherData($targetDatetime, $resultWithElectricity)
+            'data' => $this->addWeatherData($targetDatetime, $this->electricityData($targetDatetime))
         ]);
     }
 
@@ -45,7 +44,7 @@ class CurrentDataController extends Controller
     {
         $result = $existingResult;
         foreach (AvailableCountry::get() as $country) {
-            $data = History::select('country')
+            $data = Forecast::select('country')
                 ->selectRaw("AVG(temperature) AS temperature")
                 ->selectRaw("AVG(wind) AS wind")
                 ->selectRaw("AVG(clouds) AS clouds")
